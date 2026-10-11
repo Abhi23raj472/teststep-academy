@@ -11,24 +11,30 @@
 
   var DONE_KEY = 'tsh.done';
   var VIEWS = ['home', 'syllabus', 'lesson', 'interview', 'cheatsheet', 'glossary'];
-  var TITLES = { syllabus: 'Syllabus', interview: 'Interview preparation', cheatsheet: 'Cheat sheet', glossary: 'Glossary' };
+  var TITLES = { syllabus: 'Syllabus', interview: 'Interview prep', cheatsheet: 'Cheat sheet', glossary: 'Glossary' };
   var SITE = 'TestStep Academy';
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+
+  // Colour pairs for the cheat sheet groups, used in turn (class names in style.css).
+  var TINTS = ['tint-violet', 'tint-green', 'tint-orange', 'tint-blue', 'tint-pink', 'tint-yellow'];
 
   var study = { units: [], lessons: [], cheatsheet: [], glossary: [] };
+  var questions = [];             // filled once script.js has loaded them
   var done = loadDone();          // ids of lessons the visitor marked as done
-  var questionTotal = 0;
   var firstRoute = true;
   var current = { view: '', id: '' };
 
   var el = {};
   [
-    'nav', 'navLinks', 'menuToggle', 'syllabusItem', 'syllabusLink', 'syllabusMenu',
-    'homeContinue', 'homeProgress', 'homeProgressText', 'homeProgressPercent', 'homeProgressBar',
-    'homePath', 'homeUnits', 'homeQuestionCount',
-    'syllabusLead', 'syllabusSearch', 'syllabusList', 'syllabusEmpty',
+    'nav', 'navLinks', 'menuToggle', 'syllabusItem', 'syllabusLink', 'syllabusMenu', 'tabbar',
+    'homeTitle', 'homeKicker', 'homeLead', 'homeContinue', 'homeContinueText', 'homeContinueNote',
+    'homeRing', 'homeRingText', 'homeProgressText', 'homeProgressSub',
+    'homeQuestionCount', 'homeDiffBar', 'homeDiffNote', 'homeUnits', 'homeQotd',
+    'homeCheatText', 'homeGlossaryText',
+    'syllabusLead', 'syllabusSearch', 'syllabusBanner', 'syllabusList', 'syllabusEmpty',
     'lessonOutline', 'lessonArticle',
-    'cheatSearch', 'cheatList', 'cheatEmpty',
-    'glossarySearch', 'glossaryList', 'glossaryEmpty'
+    'cheatSearch', 'cheatChips', 'cheatList', 'cheatEmpty',
+    'glossaryLead', 'glossarySearch', 'glossaryLetters', 'glossaryList', 'glossaryEmpty'
   ].forEach(function (id) { el[id] = document.getElementById(id); });
 
   var views = {};
@@ -99,6 +105,14 @@
     return study.lessons.find(function (lesson) { return !done.has(lesson.id); }) || null;
   }
 
+  function doneCount() {
+    return study.lessons.filter(function (lesson) { return done.has(lesson.id); }).length;
+  }
+
+  function plural(n, one, many) {
+    return n + ' ' + (n === 1 ? one : many);
+  }
+
   function searchWords(input) {
     return input.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
   }
@@ -114,10 +128,45 @@
     return a;
   }
 
-  function tick(isDone) {
-    var mark = h('span', 'tick');
-    if (isDone) mark.appendChild(icon('check', 14));
-    return mark;
+  // Reading time from the lesson's own text, at about 200 words a minute.
+  function minutesFor(lesson) {
+    var text = [lesson.simple].concat(list(lesson.body), list(lesson.points), [lesson.mistake || '']);
+    if (lesson.example) {
+      text.push(lesson.example.intro || '', lesson.example.outcome || '');
+      list(lesson.example.code).forEach(function (item) { text.push(item.label || ''); });
+    }
+    list(lesson.graphics).forEach(function (g) {
+      list(g.steps).forEach(function (s) { text.push(s.text || ''); });
+      list(g.columns).forEach(function (c) { text.push(list(c.points).join(' ')); });
+    });
+    var words = text.join(' ').split(/\s+/).filter(Boolean).length;
+    return Math.max(3, Math.round(words / 200) + 2); // + time for the diagram and example
+  }
+
+  // Small status icons: done, up next, not started.
+  function stateIcon(kind) {
+    var svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('width', '22');
+    svg.setAttribute('height', '22');
+    svg.setAttribute('class', 'state-icon state-' + kind);
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', kind === 'done' ? 'Done' : (kind === 'next' ? 'Up next' : 'Not started'));
+    var circle = document.createElementNS(SVG_NS, 'circle');
+    circle.setAttribute('cx', '12');
+    circle.setAttribute('cy', '12');
+    circle.setAttribute('r', kind === 'todo' ? '10' : '11');
+    svg.appendChild(circle);
+    if (kind !== 'todo') {
+      var path = document.createElementNS(SVG_NS, 'path');
+      path.setAttribute('d', kind === 'done' ? 'm7.5 12.5 3 3 6-6.5' : 'M10 8l6 4-6 4z');
+      svg.appendChild(path);
+    }
+    return svg;
+  }
+
+  function badge(className, text) {
+    return h('span', 'badge ' + className, text);
   }
 
   function docsLine(docs, lead) {
@@ -135,20 +184,24 @@
     return p;
   }
 
+  function copyButton(code, ariaLabel) {
+    var button = h('button', 'copy-btn');
+    button.type = 'button';
+    button.setAttribute('aria-label', ariaLabel || ('Copy: ' + code));
+    button.appendChild(icon('copy', 14));
+    var text = h('span', '', 'Copy');
+    button.appendChild(text);
+    button.addEventListener('click', function () { T.copyText(code, button, text); });
+    return button;
+  }
+
   // One line of syntax with a label and a copy button.
   function snippet(label, code, note) {
     var block = h('div', 'syntax-item');
     if (label) block.appendChild(h('p', 'syntax-label', label));
     var row = h('div', 'syntax-row');
     row.appendChild(h('pre', 'syntax-code', code));
-    var button = h('button', 'copy-btn');
-    button.type = 'button';
-    button.setAttribute('aria-label', 'Copy: ' + code);
-    button.appendChild(icon('copy', 14));
-    var text = h('span', '', 'Copy');
-    button.appendChild(text);
-    button.addEventListener('click', function () { T.copyText(code, button, text); });
-    row.appendChild(button);
+    row.appendChild(copyButton(code));
     block.appendChild(row);
     if (note) block.appendChild(h('p', 'syntax-note', note));
     return block;
@@ -177,6 +230,12 @@
     return scroll;
   }
 
+  function panel(className, title) {
+    var section = h('section', 'panel' + (className ? ' ' + className : ''));
+    if (title) section.appendChild(h('h2', 'panel-title', title));
+    return section;
+  }
+
   // ---------- diagrams ----------
 
   // Each lesson describes its diagrams as data. They are drawn with HTML and CSS,
@@ -201,10 +260,15 @@
       if (g.root.text) root.appendChild(h('span', '', g.root.text));
       box.appendChild(root);
       var ul = h('ul', 'tree-children');
+      ul.style.setProperty('--n', String(Math.max(1, list(g.root.children).length)));
       list(g.root.children).forEach(function (child) {
         var li = h('li');
         li.appendChild(h('strong', '', child.label));
-        if (child.text) li.appendChild(h('span', '', child.text));
+        if (child.text) {
+          var span = h('span');
+          span.appendChild(richText(child.text));
+          li.appendChild(span);
+        }
         ul.appendChild(li);
       });
       box.appendChild(ul);
@@ -214,7 +278,7 @@
       var box = h('div', 'compare');
       list(g.columns).forEach(function (column) {
         var col = h('div', 'compare-col');
-        col.appendChild(h('h4', '', column.title));
+        col.appendChild(h('h3', '', column.title));
         var ul = h('ul');
         list(column.points).forEach(function (point) {
           var li = h('li');
@@ -244,10 +308,11 @@
   function figure(graphic) {
     var draw = graphic && DIAGRAMS[graphic.type];
     if (!draw) return null;
-    var fig = h('figure', 'figure');
-    if (graphic.title) fig.appendChild(h('figcaption', '', graphic.title));
+    var section = panel('figure', graphic.title || 'Diagram');
+    var fig = h('figure', 'figure-body');
     fig.appendChild(draw(graphic));
-    return fig;
+    section.appendChild(fig);
+    return section;
   }
 
   // The parts of a diagram appear one after another when it scrolls into view.
@@ -276,12 +341,14 @@
     el.syllabusMenu.textContent = '';
     study.units.forEach(function (unit) {
       var box = h('div', 'mega-unit');
-      box.appendChild(h('h3', '', 'Unit ' + unit.id + ' · ' + unit.title));
+      box.appendChild(h('h3', '', 'Unit ' + unit.id + ': ' + unit.title));
       var ul = h('ul');
       lessonsOf(unit.id).forEach(function (lesson) {
         var li = h('li');
         var a = link('mega-link', '', lessonHref(lesson));
-        a.appendChild(tick(done.has(lesson.id)));
+        var tick = h('span', 'tick');
+        if (done.has(lesson.id)) tick.appendChild(icon('check', 14));
+        a.appendChild(tick);
         a.appendChild(h('span', '', lesson.title));
         if (current.view === 'lesson' && current.id === lesson.id) a.setAttribute('aria-current', 'page');
         li.appendChild(a);
@@ -303,9 +370,13 @@
 
   function markActiveLink(view) {
     var section = view === 'lesson' ? 'syllabus' : view;
-    Array.prototype.forEach.call(el.navLinks.querySelectorAll('.nav-link'), function (a) {
-      if (a.getAttribute('data-route') === section) a.setAttribute('aria-current', 'page');
-      else a.removeAttribute('aria-current');
+    var links = el.navLinks.querySelectorAll('.nav-link');
+    var tabs = el.tabbar.querySelectorAll('.tab');
+    [links, tabs].forEach(function (group) {
+      Array.prototype.forEach.call(group, function (a) {
+        if (a.getAttribute('data-route') === section) a.setAttribute('aria-current', 'page');
+        else a.removeAttribute('aria-current');
+      });
     });
   }
 
@@ -313,58 +384,146 @@
 
   function renderHome() {
     var total = study.lessons.length;
+    var finished = doneCount();
     var next = nextUndone();
+    var share = total ? finished / total : 0;
+    var percent = Math.round(share * 100);
 
-    if (!done.size && study.lessons[0]) {
-      el.homeContinue.textContent = 'Start with lesson 1';
-      el.homeContinue.href = lessonHref(study.lessons[0]);
+    // Hero: a welcome for newcomers, progress for returning visitors.
+    if (!finished) {
+      el.homeKicker.textContent = 'Tricentis Tosca, in simple words';
+      el.homeTitle.textContent = 'Learn Tosca step by step, in simple words.';
+      el.homeLead.textContent = plural(total, 'lesson', 'lessons') + ', each with a diagram and a worked example. When you are ready, practise with real interview questions.';
     } else if (next) {
-      el.homeContinue.textContent = 'Continue: ' + next.title;
-      el.homeContinue.href = lessonHref(next);
+      el.homeKicker.textContent = 'Welcome back';
+      el.homeTitle.textContent = percent >= 50
+        ? 'More than halfway to Tosca-ready.'
+        : 'You are ' + percent + '% of the way to Tosca-ready.';
+      el.homeLead.textContent = 'Pick up where you left off, or open any lesson from your learning path below.';
     } else {
-      el.homeContinue.textContent = 'Review the syllabus';
-      el.homeContinue.href = '#/syllabus';
+      el.homeKicker.textContent = 'Every lesson done';
+      el.homeTitle.textContent = 'You finished the syllabus. Time to rehearse.';
+      el.homeLead.textContent = 'Go through the interview questions, then revise with the cheat sheet.';
     }
 
-    el.homeProgress.hidden = !done.size || !total;
-    if (done.size && total) {
-      var share = Math.min(1, done.size / total);
-      el.homeProgressText.textContent = done.size + ' of ' + total + ' lessons done';
-      el.homeProgressPercent.textContent = Math.round(share * 100) + '%';
-      if (T.motionOn()) animate(el.homeProgressBar, { scaleX: [0, share] }, { duration: 0.7, ease: T.EASE_OUT });
-      else el.homeProgressBar.style.transform = 'scaleX(' + share + ')';
+    if (!finished && study.lessons[0]) {
+      el.homeContinueText.textContent = 'Start with lesson 1';
+      el.homeContinue.href = lessonHref(study.lessons[0]);
+      el.homeContinueNote.textContent = study.lessons[0].title + ', about ' + minutesFor(study.lessons[0]) + ' min';
+    } else if (next) {
+      el.homeContinueText.textContent = 'Continue: ' + next.title;
+      el.homeContinue.href = lessonHref(next);
+      el.homeContinueNote.textContent = 'Lesson ' + lessonNumber(next) + ', about ' + minutesFor(next) + ' min';
+    } else {
+      el.homeContinueText.textContent = 'Practise interview questions';
+      el.homeContinue.href = '#/interview';
+      el.homeContinueNote.textContent = '';
     }
 
-    el.homePath.textContent = '';
-    var path = figure({
-      type: 'flow',
-      steps: [
-        { label: '1. Learn', text: 'Read a lesson from the Syllabus. Each one starts in simple words.' },
-        { label: '2. See it', text: 'Study the diagram and the worked example.' },
-        { label: '3. Remember', text: 'Look things up in the Cheat sheet and the Glossary.' },
-        { label: '4. Practise', text: 'Answer the interview questions on the same topic.' }
-      ]
-    });
-    el.homePath.appendChild(path);
-    animateFigure(path);
+    // Progress ring
+    el.homeRing.style.setProperty('--p', String(percent));
+    el.homeRingText.textContent = percent + '%';
+    el.homeProgressText.textContent = finished
+      ? finished + ' of ' + plural(total, 'lesson', 'lessons')
+      : plural(total, 'lesson', 'lessons');
+    var unitsDone = study.units.filter(function (unit) {
+      var lessons = lessonsOf(unit.id);
+      return lessons.length && lessons.every(function (lesson) { return done.has(lesson.id); });
+    }).length;
+    el.homeProgressSub.textContent = finished
+      ? (unitsDone ? plural(unitsDone, 'unit', 'units') + ' complete' : 'Keep going, one lesson at a time')
+      : 'Mark lessons as done to see your progress here.';
 
+    renderHomeQuestions();
+
+    if (el.homeCheatText && study.cheatsheet.length) {
+      el.homeCheatText.textContent = plural(study.cheatsheet.length, 'group', 'groups') + ', copy in one tap';
+    }
+    if (el.homeGlossaryText && study.glossary.length) {
+      el.homeGlossaryText.textContent = study.glossary.length + ' terms in plain words';
+    }
+
+    // Learning path: one card per unit
     el.homeUnits.textContent = '';
+    var nextUnit = next ? next.unit : null;
     study.units.forEach(function (unit) {
       var lessons = lessonsOf(unit.id);
       if (!lessons.length) return;
-      var finished = lessons.filter(function (lesson) { return done.has(lesson.id); }).length;
+      var count = lessons.filter(function (lesson) { return done.has(lesson.id); }).length;
+      var complete = count === lessons.length;
+      var isNext = unit.id === nextUnit;
       var target = lessons.find(function (lesson) { return !done.has(lesson.id); }) || lessons[0];
-      var card = link('unit-card', '', lessonHref(target));
-      card.appendChild(h('span', 'unit-num', 'Unit ' + unit.id));
+
+      var card = link('unit-card' + (isNext ? ' is-next' : '') + (complete ? ' is-done' : ''), '', lessonHref(target));
+      var top = h('span', 'unit-top');
+      top.appendChild(badge(complete ? 'badge-done' : (isNext ? 'badge-next' : 'badge-plain'), complete ? '✓' : String(unit.id)));
+      var pill = h('span', 'state-pill', complete ? 'Done' : (isNext ? 'Up next' : plural(lessons.length, 'lesson', 'lessons')));
+      pill.classList.add(complete ? 'pill-done' : (isNext ? 'pill-next' : 'pill-plain'));
+      top.appendChild(pill);
+      card.appendChild(top);
       card.appendChild(h('h3', '', unit.title));
       card.appendChild(h('p', '', unit.text || ''));
-      card.appendChild(h('span', 'unit-meta',
-        lessons.length + (lessons.length === 1 ? ' lesson' : ' lessons') + (finished ? ' · ' + finished + ' done' : '')));
+      card.appendChild(progressLine(count, lessons.length));
       el.homeUnits.appendChild(card);
     });
     riseIn(el.homeUnits.children);
+  }
 
-    if (questionTotal) el.homeQuestionCount.textContent = questionTotal + ' scenario';
+  function progressLine(count, total) {
+    var row = h('span', 'progress-line');
+    var track = h('span', 'track');
+    var bar = h('span', 'bar');
+    bar.style.width = (total ? Math.round(count / total * 100) : 0) + '%';
+    track.appendChild(bar);
+    row.appendChild(track);
+    row.appendChild(h('span', 'frac', count + '/' + total));
+    return row;
+  }
+
+  // The interview card and the question of the day need the questions from script.js.
+  function renderHomeQuestions() {
+    if (!questions.length) return;
+    el.homeQuestionCount.textContent = String(questions.length);
+
+    var levels = { Beginner: 0, Intermediate: 0, Advanced: 0 };
+    questions.forEach(function (q) { if (levels[q.difficulty] != null) levels[q.difficulty] += 1; });
+    el.homeDiffBar.textContent = '';
+    ['Beginner', 'Intermediate', 'Advanced'].forEach(function (level) {
+      if (!levels[level]) return;
+      var seg = h('span', 'seg seg-' + level.toLowerCase());
+      seg.style.flexGrow = String(levels[level]);
+      el.homeDiffBar.appendChild(seg);
+    });
+    el.homeDiffNote.textContent = levels.Beginner + ' beginner, ' + levels.Intermediate + ' intermediate, ' + levels.Advanced + ' advanced';
+
+    // Question of the day: the same question all day, a new one tomorrow.
+    var day = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
+    var q = questions[day % questions.length];
+    var box = el.homeQotd;
+    box.textContent = '';
+    var tags = h('div', 'qotd-tags');
+    tags.appendChild(h('span', 'tag tag-pop', 'Question of the day'));
+    if (q.difficulty) tags.appendChild(h('span', 'tag diff-' + q.difficulty.toLowerCase(), q.difficulty));
+    tags.appendChild(h('span', 'qotd-topic', q.topic));
+    box.appendChild(tags);
+    box.appendChild(h('p', 'qotd-q', q.question));
+    var actions = h('div', 'qotd-actions');
+    actions.appendChild(link('btn btn-ink', 'Think, then open the approach', '#/interview?q=' + encodeURIComponent(q.id)));
+    var mark = h('button', 'btn');
+    mark.type = 'button';
+    function paintMark() {
+      var on = T.interview.isBookmarked(q.id);
+      mark.textContent = on ? 'Bookmarked' : 'Bookmark';
+      mark.setAttribute('aria-pressed', String(on));
+    }
+    paintMark();
+    mark.addEventListener('click', function () {
+      T.interview.toggleBookmark(q.id);
+      paintMark();
+    });
+    actions.appendChild(mark);
+    box.appendChild(actions);
+    box.hidden = false;
   }
 
   // ---------- Syllabus ----------
@@ -372,37 +531,71 @@
   function renderSyllabus() {
     var words = searchWords(el.syllabusSearch);
     var shown = 0;
+    var total = study.lessons.length;
+    var finished = doneCount();
+    var next = nextUndone();
     el.syllabusList.textContent = '';
-    el.syllabusLead.textContent = study.lessons.length + ' lessons in ' + study.units.length +
-      ' units. Work through them in order, or jump to the topic you need.';
+    el.syllabusLead.textContent = plural(total, 'lesson', 'lessons') + ' in ' + plural(study.units.length, 'unit', 'units') +
+      '. Go in order, or jump to what you need.';
+
+    // Progress banner
+    var banner = el.syllabusBanner;
+    banner.textContent = '';
+    if (total && !words.length) {
+      var percent = Math.round(finished / total * 100);
+      var ring = h('span', 'ring ring-small ring-ink');
+      ring.style.setProperty('--p', String(percent));
+      ring.setAttribute('aria-hidden', 'true');
+      ring.appendChild(h('span', '', percent + '%'));
+      banner.appendChild(ring);
+      var text = h('div', 'ink-banner-text');
+      text.appendChild(h('p', 'ink-banner-title', finished ? finished + ' of ' + total + ' lessons done' : 'Start with lesson 1'));
+      text.appendChild(h('p', 'ink-banner-sub', next ? 'Up next: ' + next.title + ', in Unit ' + next.unit : 'Every lesson is done.'));
+      banner.appendChild(text);
+      if (next) banner.appendChild(link('btn btn-light', finished ? 'Continue learning' : 'Start learning', lessonHref(next)));
+      banner.hidden = false;
+    } else {
+      banner.hidden = true;
+    }
 
     study.units.forEach(function (unit) {
-      var lessons = lessonsOf(unit.id).filter(function (lesson) {
+      var all = lessonsOf(unit.id);
+      var lessons = all.filter(function (lesson) {
         return !words.length || hasAll(lesson.title + ' ' + lesson.simple + ' ' + list(lesson.body).join(' ') + ' ' + unit.title, words);
       });
       if (!lessons.length) return;
       shown += lessons.length;
+      var count = all.filter(function (lesson) { return done.has(lesson.id); }).length;
+      var complete = count === all.length;
+      var isNext = !!next && next.unit === unit.id;
 
-      var block = h('section', 'unit-block');
-      block.appendChild(h('h2', '', 'Unit ' + unit.id + ': ' + unit.title));
-      if (unit.text) block.appendChild(h('p', '', unit.text));
-      var ul = h('ul', 'lesson-list');
+      var block = h('section', 'unit-block' + (isNext ? ' is-next' : ''));
+      var head = h('div', 'unit-head');
+      head.appendChild(badge(complete ? 'badge-done badge-lg' : (isNext ? 'badge-next badge-lg' : 'badge-plain badge-lg'), complete ? '✓' : String(unit.id)));
+      var titles = h('div', 'unit-titles');
+      titles.appendChild(h('p', 'unit-kicker', 'Unit ' + unit.id));
+      titles.appendChild(h('h2', '', unit.title));
+      if (unit.text) titles.appendChild(h('p', 'unit-text', unit.text));
+      head.appendChild(titles);
+      block.appendChild(head);
+      block.appendChild(progressLine(count, all.length));
+
+      var ol = h('ol', 'lesson-list');
       lessons.forEach(function (lesson) {
+        var isDone = done.has(lesson.id);
+        var isUpNext = next === lesson;
         var li = h('li');
-        var row = link('lesson-row', '', lessonHref(lesson));
-        row.appendChild(h('span', 'lesson-no', lessonNumber(lesson)));
-        var text = h('span');
-        text.appendChild(h('strong', '', lesson.title));
-        text.appendChild(h('span', 'lesson-simple', lesson.simple));
-        row.appendChild(text);
-        var mark = h('span', 'done-mark' + (done.has(lesson.id) ? ' is-done' : ''));
-        mark.setAttribute('aria-label', done.has(lesson.id) ? 'Done' : 'Not done yet');
-        mark.appendChild(icon('check', 14));
-        row.appendChild(mark);
+        var row = link('lesson-row' + (isUpNext ? ' is-next' : ''), '', lessonHref(lesson));
+        row.appendChild(stateIcon(isDone ? 'done' : (isUpNext ? 'next' : 'todo')));
+        var title = h('span', 'lesson-title');
+        title.appendChild(h('span', 'lesson-no', lessonNumber(lesson) + ' '));
+        title.appendChild(document.createTextNode(lesson.title));
+        row.appendChild(title);
+        if (isUpNext) row.appendChild(h('span', 'lesson-tag', 'Up next'));
         li.appendChild(row);
-        ul.appendChild(li);
+        ol.appendChild(li);
       });
-      block.appendChild(ul);
+      block.appendChild(ol);
       el.syllabusList.appendChild(block);
     });
     el.syllabusEmpty.hidden = shown > 0;
@@ -410,30 +603,51 @@
 
   // ---------- one lesson ----------
 
+  // The rail next to a lesson lists the lessons of the same unit.
   function renderOutline(active) {
+    var unit = unitOf(active);
+    var lessons = lessonsOf(unit.id);
     el.lessonOutline.textContent = '';
-    study.units.forEach(function (unit) {
-      el.lessonOutline.appendChild(h('h2', '', 'Unit ' + unit.id + ' · ' + unit.title));
+    el.lessonOutline.appendChild(link('rail-back', 'All units', '#/syllabus'));
+    el.lessonOutline.appendChild(h('p', 'rail-kicker', 'Unit ' + unit.id));
+    el.lessonOutline.appendChild(h('h2', 'rail-title', unit.title));
+    var ol = h('ol', 'rail-list');
+    lessons.forEach(function (lesson, index) {
+      var li = h('li');
+      var a = link('', '', lessonHref(lesson));
+      var isDone = done.has(lesson.id);
+      var mark = h('span', 'rail-num' + (lesson === active ? ' is-active' : '') + (isDone ? ' is-done' : ''));
+      if (isDone && lesson !== active) mark.appendChild(icon('check', 14));
+      else mark.textContent = String(index + 1);
+      a.appendChild(mark);
+      a.appendChild(h('span', '', lesson.title));
+      if (lesson === active) a.setAttribute('aria-current', 'page');
+      li.appendChild(a);
+      ol.appendChild(li);
+    });
+    el.lessonOutline.appendChild(ol);
+
+    var others = study.units.filter(function (u) { return u.id !== unit.id; });
+    if (others.length) {
+      var more = h('details', 'rail-more');
+      more.appendChild(h('summary', '', 'Other units'));
       var ul = h('ul');
-      lessonsOf(unit.id).forEach(function (lesson) {
+      others.forEach(function (u) {
+        var first = lessonsOf(u.id)[0];
+        if (!first) return;
         var li = h('li');
-        var a = link('', '', lessonHref(lesson));
-        a.appendChild(tick(done.has(lesson.id)));
-        a.appendChild(h('span', '', lesson.title));
-        if (lesson === active) a.setAttribute('aria-current', 'page');
-        li.appendChild(a);
+        li.appendChild(link('', 'Unit ' + u.id + ': ' + u.title, lessonHref(first)));
         ul.appendChild(li);
       });
-      el.lessonOutline.appendChild(ul);
-    });
-    var here = el.lessonOutline.querySelector('[aria-current="page"]');
-    if (here && here.scrollIntoView) here.scrollIntoView({ block: 'nearest' });
+      more.appendChild(ul);
+      el.lessonOutline.appendChild(more);
+    }
   }
 
   function paintDone(button, lesson) {
     var isDone = done.has(lesson.id);
     button.textContent = '';
-    if (isDone) button.appendChild(icon('check', 16));
+    button.appendChild(icon('check', 18));
     button.appendChild(document.createTextNode(isDone ? 'Done' : 'Mark as done'));
     button.classList.toggle('is-done', isDone);
     button.setAttribute('aria-pressed', String(isDone));
@@ -442,33 +656,43 @@
   function renderLesson(lesson) {
     var article = el.lessonArticle;
     var unit = unitOf(lesson);
+    var unitLessons = lessonsOf(unit.id);
     var index = study.lessons.indexOf(lesson);
     var previous = study.lessons[index - 1];
     var following = study.lessons[index + 1];
     article.textContent = '';
 
-    var crumbs = h('p', 'crumbs');
-    crumbs.appendChild(link('', 'Syllabus', '#/syllabus'));
-    crumbs.appendChild(document.createTextNode(' / Unit ' + unit.id + ': ' + unit.title + ' / Lesson ' + lessonNumber(lesson)));
-    article.appendChild(crumbs);
-
+    // Hero
+    var hero = h('header', 'lesson-hero');
+    hero.appendChild(h('span', 'hero-blob hero-blob-a'));
+    var chips = h('div', 'hero-chips');
+    chips.appendChild(h('span', 'hero-chip', 'Unit ' + unit.id + ', lesson ' + (unitLessons.indexOf(lesson) + 1) + ' of ' + unitLessons.length));
+    chips.appendChild(h('span', 'hero-chip', 'About ' + minutesFor(lesson) + ' minutes'));
+    if (done.has(lesson.id)) chips.appendChild(h('span', 'hero-chip hero-chip-done', 'Done'));
+    hero.appendChild(chips);
     var title = h('h1', '', lesson.title);
     title.tabIndex = -1;
-    article.appendChild(title);
-
+    hero.appendChild(title);
     var simple = h('div', 'simple-box');
-    simple.appendChild(h('h2', 'details-title', 'In simple words'));
-    var simpleText = h('p');
+    simple.appendChild(h('p', 'simple-label', 'In simple words'));
+    var simpleText = h('p', 'simple-text');
     simpleText.appendChild(richText(lesson.simple || ''));
     simple.appendChild(simpleText);
-    article.appendChild(simple);
+    hero.appendChild(simple);
+    article.appendChild(hero);
 
-    list(lesson.body).forEach(function (paragraph) {
-      var p = h('p');
-      p.appendChild(richText(paragraph));
-      article.appendChild(p);
-    });
+    // Explanation
+    if (list(lesson.body).length) {
+      var how = panel('prose', 'How it works');
+      lesson.body.forEach(function (paragraph) {
+        var p = h('p');
+        p.appendChild(richText(paragraph));
+        how.appendChild(p);
+      });
+      article.appendChild(how);
+    }
 
+    // Diagrams
     var figures = [];
     list(lesson.graphics).forEach(function (graphic) {
       var fig = figure(graphic);
@@ -478,12 +702,12 @@
       }
     });
 
+    // Worked example
     var example = lesson.example;
     if (example) {
-      article.appendChild(h('h2', '', 'Example: ' + example.title));
-      var box = h('div', 'example-box');
+      var box = panel('example-box', 'Worked example: ' + example.title);
       if (example.intro) {
-        var intro = h('p');
+        var intro = h('p', 'example-intro');
         intro.appendChild(richText(example.intro));
         box.appendChild(intro);
       }
@@ -501,48 +725,64 @@
       article.appendChild(box);
     }
 
+    // Key points and the common mistake, side by side
+    var pair = h('div', 'lesson-pair');
     if (list(lesson.points).length) {
-      article.appendChild(h('h2', '', 'Key points'));
+      var remember = panel('points-panel', 'Remember');
       var points = h('ul', 'points');
       lesson.points.forEach(function (point) {
         var li = h('li');
-        li.appendChild(icon('check', 16));
+        var tickMark = h('span', 'point-tick');
+        tickMark.appendChild(icon('check', 14));
+        li.appendChild(tickMark);
         var text = h('span');
         text.appendChild(richText(point));
         li.appendChild(text);
         points.appendChild(li);
       });
-      article.appendChild(points);
+      remember.appendChild(points);
+      pair.appendChild(remember);
     }
-
     if (lesson.mistake) {
-      var warn = h('div', 'mistake');
-      warn.appendChild(icon('warning', 18));
-      var body = h('div');
-      body.appendChild(h('strong', '', 'Common mistake'));
-      var mistake = h('span');
+      var warn = panel('mistake-panel', 'Common mistake');
+      var mistake = h('p');
       mistake.appendChild(richText(lesson.mistake));
-      body.appendChild(mistake);
-      warn.appendChild(body);
-      article.appendChild(warn);
+      warn.appendChild(mistake);
+      pair.appendChild(warn);
     }
+    if (pair.children.length) article.appendChild(pair);
 
     var refs = docsLine(lesson.docs, 'More in the Tricentis manual: ');
     if (refs) {
-      refs.style.marginTop = '18px';
+      refs.classList.add('lesson-docs');
       article.appendChild(refs);
     }
 
+    // Practise this topic
     var count = lesson.questions ? T.interview.count(lesson.questions) : 0;
     if (count) {
-      var cta = link('btn btn-primary lesson-cta',
-        'Practise ' + count + (count === 1 ? ' interview question' : ' interview questions') + ' on ' + lesson.questions,
-        '#/interview?topic=' + encodeURIComponent(lesson.questions));
+      var cta = link('practise-card', '', '#/interview?topic=' + encodeURIComponent(lesson.questions));
+      var words = h('span', 'practise-words');
+      words.appendChild(h('span', 'practise-kicker', 'Practise this topic'));
+      words.appendChild(h('span', 'practise-title', plural(count, 'interview question', 'interview questions') + ' on ' + lesson.questions));
+      cta.appendChild(words);
+      cta.appendChild(h('span', 'practise-btn', 'Start practising'));
       article.appendChild(cta);
     }
 
-    var foot = h('div', 'lesson-foot');
-    var doneButton = h('button', 'btn');
+    // Previous, done, next
+    var foot = h('nav', 'lesson-foot');
+    foot.setAttribute('aria-label', 'Lesson navigation');
+    if (previous) {
+      var back = link('foot-link', '', lessonHref(previous));
+      back.appendChild(icon('arrowLeft', 16));
+      back.appendChild(h('span', '', previous.title));
+      back.setAttribute('aria-label', 'Previous lesson: ' + previous.title);
+      foot.appendChild(back);
+    } else {
+      foot.appendChild(h('span', 'foot-spacer'));
+    }
+    var doneButton = h('button', 'done-btn');
     doneButton.type = 'button';
     paintDone(doneButton, lesson);
     doneButton.addEventListener('click', function () {
@@ -554,24 +794,15 @@
       if (done.has(lesson.id)) animate(doneButton, { scale: [1, 1.08, 1] }, { duration: 0.35, ease: T.EASE_OUT });
     });
     foot.appendChild(doneButton);
-
-    var nav = h('div', 'lesson-nav');
-    if (previous) {
-      var back = link('btn', '', lessonHref(previous));
-      back.appendChild(icon('arrowLeft', 16));
-      back.appendChild(document.createTextNode('Previous'));
-      back.title = previous.title;
-      nav.appendChild(back);
-    }
     if (following) {
-      var forward = link('btn btn-primary', '', lessonHref(following));
-      forward.appendChild(document.createTextNode('Next: ' + following.title));
+      var forward = link('foot-link foot-next', '', lessonHref(following));
+      forward.appendChild(h('span', '', following.title));
       forward.appendChild(icon('arrowRight', 16));
-      nav.appendChild(forward);
+      forward.setAttribute('aria-label', 'Next lesson: ' + following.title);
+      foot.appendChild(forward);
     } else {
-      nav.appendChild(link('btn btn-primary', 'Go to interview preparation', '#/interview'));
+      foot.appendChild(link('foot-link foot-next', 'Interview prep', '#/interview'));
     }
-    foot.appendChild(nav);
     article.appendChild(foot);
 
     renderOutline(lesson);
@@ -580,25 +811,76 @@
 
   // ---------- Cheat sheet ----------
 
+  function slug(text) {
+    return String(text).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
+
+  function renderCheatChips(groups) {
+    el.cheatChips.textContent = '';
+    groups.forEach(function (group) {
+      var chip = h('button', 'jump-chip', group.title);
+      chip.type = 'button';
+      chip.addEventListener('click', function () {
+        var target = document.getElementById('cheat-' + slug(group.title));
+        if (target) {
+          target.scrollIntoView({ block: 'start', behavior: T.motionOn() ? 'smooth' : 'auto' });
+          var heading = target.querySelector('h2');
+          if (heading) heading.focus({ preventScroll: true });
+        }
+      });
+      el.cheatChips.appendChild(chip);
+    });
+    el.cheatChips.hidden = groups.length < 2;
+  }
+
   function renderCheatsheet() {
     var words = searchWords(el.cheatSearch);
     var shown = 0;
+    var visible = [];
     el.cheatList.textContent = '';
-    study.cheatsheet.forEach(function (group) {
+    study.cheatsheet.forEach(function (group, groupIndex) {
       var items = list(group.items).filter(function (item) {
         return !words.length || hasAll(group.title + ' ' + item[0] + ' ' + item[1], words);
       });
       if (!items.length) return;
       shown += items.length;
-      var card = h('section', 'cheat-group');
-      card.appendChild(h('h2', '', group.title));
-      var box = h('div', 'syntax');
-      items.forEach(function (item) { box.appendChild(snippet(item[1], item[0])); });
-      card.appendChild(box);
-      var refs = docsLine(group.docs, 'Checked against the Tricentis manual: ');
+      visible.push(group);
+
+      var card = h('section', 'cheat-group ' + TINTS[groupIndex % TINTS.length]);
+      card.id = 'cheat-' + slug(group.title);
+      var head = h('div', 'cheat-head');
+      var heading = h('h2', '', group.title);
+      heading.tabIndex = -1;
+      head.appendChild(heading);
+      var firstDoc = list(group.docs).find(function (doc) { return doc && safeUrl(doc.url); });
+      if (firstDoc) {
+        var manual = h('a', 'cheat-manual', 'Manual');
+        manual.href = safeUrl(firstDoc.url);
+        manual.target = '_blank';
+        manual.rel = 'noopener noreferrer';
+        manual.title = firstDoc.title;
+        head.appendChild(manual);
+      }
+      card.appendChild(head);
+
+      var ul = h('ul', 'cheat-rows');
+      items.forEach(function (item) {
+        var li = h('li', 'cheat-row');
+        var text = h('div', 'cheat-text');
+        text.appendChild(h('code', 'cheat-code', item[0]));
+        var meaning = h('p');
+        meaning.appendChild(richText(item[1]));
+        text.appendChild(meaning);
+        li.appendChild(text);
+        li.appendChild(copyButton(item[0]));
+        ul.appendChild(li);
+      });
+      card.appendChild(ul);
+      var refs = docsLine(group.docs, 'Checked against: ');
       if (refs) card.appendChild(refs);
       el.cheatList.appendChild(card);
     });
+    renderCheatChips(visible);
     el.cheatEmpty.hidden = shown > 0;
   }
 
@@ -614,17 +896,42 @@
       (groups[letter] = groups[letter] || []).push(entry);
     });
 
+    if (study.glossary.length) {
+      el.glossaryLead.textContent = study.glossary.length + ' Tosca terms. Each one in a simple sentence first, then in more detail.';
+    }
+
+    // A to Z bar: letters without terms are shown but cannot be used.
+    el.glossaryLetters.textContent = '';
+    '#ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(function (letter) {
+      var button = h('button', 'letter', letter);
+      button.type = 'button';
+      if (!groups[letter]) {
+        button.disabled = true;
+      } else {
+        button.setAttribute('aria-label', 'Terms starting with ' + (letter === '#' ? 'a symbol' : letter));
+        button.addEventListener('click', function () {
+          var target = document.getElementById('letter-' + (letter === '#' ? 'sym' : letter));
+          if (target) target.scrollIntoView({ block: 'start', behavior: T.motionOn() ? 'smooth' : 'auto' });
+        });
+      }
+      el.glossaryLetters.appendChild(button);
+    });
+
     el.glossaryList.textContent = '';
     var letters = Object.keys(groups).sort();
     letters.forEach(function (letter) {
       var block = h('section', 'letter-block');
-      block.appendChild(h('h2', '', letter));
+      block.id = 'letter-' + (letter === '#' ? 'sym' : letter);
+      var head = h('div', 'letter-head');
+      head.appendChild(h('h2', 'letter-badge', letter));
+      head.appendChild(h('span', 'letter-count', plural(groups[letter].length, 'term', 'terms')));
+      block.appendChild(head);
       var dl = h('dl', 'terms');
       groups[letter].forEach(function (entry) {
         var card = h('div', 'term');
         card.appendChild(h('dt', '', entry.term));
         if (entry.simple) {
-          var simple = h('dd');
+          var simple = h('dd', 'term-simple');
           simple.appendChild(richText(entry.simple));
           card.appendChild(simple);
         }
@@ -634,8 +941,10 @@
           card.appendChild(detail);
         }
         if (entry.topic) {
-          var topic = h('dd');
-          topic.appendChild(h('span', 'tag', entry.topic));
+          var topic = h('dd', 'term-topic');
+          var count = T.interview.count(entry.topic);
+          if (count) topic.appendChild(link('tag tag-soft', entry.topic, '#/interview?topic=' + encodeURIComponent(entry.topic)));
+          else topic.appendChild(h('span', 'tag tag-soft', entry.topic));
           card.appendChild(topic);
         }
         dl.appendChild(card);
@@ -650,7 +959,8 @@
 
   // Pages are addressed through the part of the address after #, so they work
   // without a server: #/ (home), #/syllabus, #/learn/<lesson>, #/interview,
-  // #/cheatsheet, #/glossary.
+  // #/cheatsheet, #/glossary. #/interview?topic=… narrows the questions to a
+  // topic and #/interview?q=… opens one question.
   function readRoute() {
     var hash = location.hash;
     if (hash && hash.indexOf('#/') !== 0) return null; // an in-page link such as "skip to content"
@@ -669,14 +979,13 @@
       return { view: 'lesson', id: id };
     }
     if (VIEWS.indexOf(name) === -1 || name === 'lesson') name = 'home';
-    var topic;
+    var params = {};
     query.split('&').forEach(function (pair) {
       var bits = pair.split('=');
-      if (bits[0] === 'topic' && bits[1]) {
-        try { topic = decodeURIComponent(bits[1]); } catch (e) { topic = bits[1]; }
-      }
+      if (!bits[0] || !bits[1]) return;
+      try { params[bits[0]] = decodeURIComponent(bits[1]); } catch (e) { params[bits[0]] = bits[1]; }
     });
-    return { view: name, id: '', topic: topic };
+    return { view: name, id: '', topic: params.topic, question: params.q };
   }
 
   function show(route) {
@@ -695,7 +1004,7 @@
     if (route.view === 'home') renderHome();
     else if (route.view === 'syllabus') renderSyllabus();
     else if (route.view === 'lesson') renderLesson(lesson);
-    else if (route.view === 'interview') T.interview.show(route.topic);
+    else if (route.view === 'interview') T.interview.show(route.topic, route.question);
     else if (route.view === 'cheatsheet') renderCheatsheet();
     else if (route.view === 'glossary') renderGlossary();
 
@@ -703,14 +1012,14 @@
       : (TITLES[route.view] ? TITLES[route.view] + ' - ' + SITE : SITE);
 
     var view = views[route.view];
-    if (!firstRoute) {
+    if (!firstRoute && !route.question) {
       window.scrollTo(0, 0);
       var heading = view.querySelector('h1');
       if (heading && heading.focus) heading.focus({ preventScroll: true });
     }
     firstRoute = false;
     animate(view, { opacity: [0, 1], y: [10, 0] }, { duration: 0.32, ease: T.EASE_OUT });
-    if (route.view === 'syllabus') riseIn(el.syllabusList.querySelectorAll('.lesson-row'));
+    if (route.view === 'syllabus') riseIn(el.syllabusList.querySelectorAll('.unit-block'));
   }
 
   function onRoute() {
@@ -764,9 +1073,10 @@
 
   // ---------- start ----------
 
-  T.interview.ready.then(function (questions) {
-    questionTotal = questions.length;
+  T.interview.ready.then(function (loaded) {
+    questions = loaded || [];
     if (current.view === 'home') renderHome();
+    if (current.view === 'glossary') renderGlossary();
     if (current.view === 'lesson') {
       var lesson = study.lessons.find(function (item) { return item.id === current.id; });
       if (lesson) renderLesson(lesson);

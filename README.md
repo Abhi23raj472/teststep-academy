@@ -6,7 +6,7 @@ Study material for Tricentis Tosca in one small website:
 - **Syllabus** covers Tosca in 29 lessons, grouped into 8 units. Every lesson
   has a definition in simple words, an explanation, a diagram, a worked example,
   key points, a common mistake and links to the Tricentis manual.
-- **Interview preparation** holds the scenario-based interview questions, each
+- **Interview prep** holds the scenario-based interview questions, each
   with a step-by-step approach, the exact syntax, a short answer and its source.
 - **Cheat sheet** lists the expressions and settings you type most often.
 - **Glossary** explains Tosca terms from A to Z.
@@ -20,7 +20,7 @@ and glossary in `study.json`.
 | File | Purpose |
 | --- | --- |
 | `index.html`, `style.css` | The page and its styles |
-| `script.js` | The Interview preparation page |
+| `script.js` | The Interview prep page |
 | `site.js` | Navigation, Home, Syllabus, lessons, Cheat sheet and Glossary |
 | `vendor/motion.js` | Animation library (see "Design and animation") |
 | `questions.json` | All interview questions |
@@ -63,27 +63,36 @@ The menu at the top switches between the pages. Each page has its own address
 - **Syllabus**: hover over it (or move to it with the Tab key) to see every
   lesson, and click one to open it. On a phone, the menu button opens the
   navigation and Syllabus leads to the full list of lessons.
-- **A lesson** ends with a button to the interview questions on the same topic,
+- **Home** shows your progress, the next lesson to take, your learning path
+  through the 8 units, and a question of the day (a new one each day).
+- **A lesson** ends with a card to the interview questions on the same topic,
   "Mark as done", and Previous/Next. Lessons you mark as done are ticked in the
-  menu and counted on the Home page.
-- **Interview preparation**: search filters as you type (press `/` to jump to
+  menu and counted on the Home and Syllabus pages.
+- **Interview prep**: search filters as you type (press `/` to jump to
   the search box). Topic and Difficulty narrow the list, and Bookmarked only
   shows saved questions. Click a card to see the approach, the syntax, the
   mistake to avoid, the short answer and the source. Expand all opens every
-  question in the current list.
-- **Cheat sheet** and **Glossary** each have a search box. Every syntax entry
-  has a Copy button.
+  question in the current list. `#/interview?q=12` opens question 12 directly.
+- **Cheat sheet** and **Glossary** each have a search box and jump links (group
+  names and an A to Z bar). Every syntax entry has a Copy button.
+- On a phone, a tab bar at the bottom reaches Home, the Syllabus, Interview prep
+  and the Cheat sheet; the menu button holds everything else.
 - Progress, bookmarks and the dark-mode choice are saved in your browser. No login.
 
 ## Design and animation
 
-The layout is a floating top bar with the menu, and a sidebar next to the
-content on lessons and on the interview page (it moves out of the way on tablets
-and phones). The diagrams in the lessons are drawn from the lesson data with
-HTML and CSS, so they follow the theme. Colours are neutral slate with one
-blue accent, in a light and a dark theme. Text is set in IBM Plex Sans and
-Tosca expressions such as `{B[Name]}` in JetBrains Mono; both come from Google
-Fonts, and the page falls back to system fonts when offline.
+The design is a guided "learning path": a soft lavender background, one violet
+accent for headings, progress and the main buttons, a lime highlight for the
+things to do next, and dark panels for Tosca syntax so expressions stand out.
+Cards and buttons are rounded. Lessons open with a coloured header and an
+"In simple words" card, and a sidebar lists the other lessons of the same unit
+(it moves out of the way on tablets and phones). The diagrams in the lessons are
+drawn from the lesson data with HTML and CSS, so they follow the theme. There is
+a light and a dark theme.
+
+Headings are set in Bricolage Grotesque, text in Figtree, and Tosca expressions
+such as `{B[Name]}` in JetBrains Mono. All three come from Google Fonts, and the
+page falls back to system fonts when offline.
 
 Animation uses [Motion](https://motion.dev), the library behind Framer Motion.
 `vendor/motion.js` is the plain-JavaScript build that ships inside the
