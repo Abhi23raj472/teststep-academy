@@ -42,6 +42,7 @@
   var cardEntries = new Map(); // question id -> the DOM parts of its card
   var topicButtons = [];
   var stopWatching = [];        // cleanup functions for scroll-triggered animations
+  var pendingShow = null;       // a show() call that arrived before the questions loaded
 
   var el = {};
   [
@@ -829,6 +830,11 @@
       countUp(el.statQuestions, state.questions.length);
       countUp(el.statTopics, topicCount);
       render({ animated: true });
+      if (pendingShow) {
+        var args = pendingShow;
+        pendingShow = null;
+        window.TSH.interview.show(args[0], args[1]);
+      }
       return state.questions;
     })
     .catch(function (err) {
@@ -859,16 +865,37 @@
       count: function (topic) {
         return state.questions.filter(function (q) { return q.topic === topic; }).length;
       },
-      // Called whenever the Interview page is opened. A topic narrows the list to it.
-      show: function (topic) {
-        if (topic) {
-          state.topic = topic;
+      isBookmarked: function (id) { return state.bookmarks.has(id); },
+      toggleBookmark: function (id) { toggleBookmark(id); return state.bookmarks.has(id); },
+      // Called whenever the Interview page is opened. A topic narrows the list to it;
+      // a question id clears the filters and opens that one question.
+      show: function (topic, questionId) {
+        if (!state.questions.length) {
+          pendingShow = [topic, questionId]; // run again once the questions have loaded
+          return;
+        }
+        var target = null;
+        if (questionId != null && questionId !== '') {
+          target = state.questions.find(function (q) { return String(q.id) === String(questionId); }) || null;
+        }
+        if (topic || target) {
+          state.topic = target ? '' : topic;
           state.query = '';
           state.difficulty = '';
           state.bookmarkedOnly = false;
           el.search.value = '';
         }
-        if (state.questions.length) render({ animated: true });
+        if (target) state.openIds.add(target.id);
+        if (state.questions.length) render({ animated: !target });
+        if (target) {
+          var entry = cardEntries.get(target.id);
+          if (entry) {
+            setTimeout(function () {
+              entry.li.scrollIntoView({ block: 'start', behavior: motionOn() ? 'smooth' : 'auto' });
+              entry.toggle.focus({ preventScroll: true });
+            }, 60);
+          }
+        }
       }
     }
   };
