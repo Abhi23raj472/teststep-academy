@@ -1,0 +1,6 @@
+# Public blog and forum pages to read, one URL per line.
+# Lines starting with # are ignored.
+# Pages that robots.txt disallows or that need a login are skipped automatically.
+#
+# Example:
+# https://example.com/blog/tosca-scenario-interview-questions
