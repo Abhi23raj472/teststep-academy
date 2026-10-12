@@ -4,7 +4,7 @@ window.TOSCA_STUDY = {
     {
       "id": 1,
       "title": "Getting started",
-      "text": "What Tosca is, where you work, and how a test comes to life."
+      "text": "Testing basics, what Tosca is, how to install it, and how a test comes to life."
     },
     {
       "id": 2,
@@ -14,7 +14,7 @@ window.TOSCA_STUDY = {
     {
       "id": 3,
       "title": "Building TestCases",
-      "text": "Steps, ActionModes, checks, reuse and logic."
+      "text": "Steps, ActionModes, DataTypes, checks, reuse and logic."
     },
     {
       "id": 4,
@@ -29,24 +29,158 @@ window.TOSCA_STUDY = {
     {
       "id": 6,
       "title": "Running tests",
-      "text": "Trial runs, official runs, failures, many machines and pipelines."
+      "text": "Trial runs, official runs, browsers, failures, many machines, the cloud and pipelines."
     },
     {
       "id": 7,
       "title": "Beyond the browser",
-      "text": "APIs, SAP, desktop and mobile applications."
+      "text": "APIs, virtual services, databases, SAP, Salesforce, mainframe, desktop and mobile."
     },
     {
       "id": 8,
       "title": "Working as a team",
-      "text": "Requirements, shared workspaces and reporting."
+      "text": "Requirements, shared workspaces, reporting and defects."
+    },
+    {
+      "id": 9,
+      "title": "Administering a project",
+      "text": "Users and rights, versions, searching, scripting and good structure."
+    },
+    {
+      "id": 10,
+      "title": "Advanced topics and next steps",
+      "text": "Extending Tosca, testing data and performance, and getting certified."
     }
   ],
   "lessons": [
     {
+      "id": "testing-basics",
+      "unit": 1,
+      "title": "Testing basics you need first",
+      "definitions": [
+        {
+          "term": "Software testing",
+          "text": "The process of evaluating a software product to confirm that it meets its requirements and to find defects before it is released."
+        },
+        {
+          "term": "Test automation",
+          "text": "The use of a tool to execute tests, compare the actual results with the expected results and report the outcome, without a person performing the steps."
+        },
+        {
+          "term": "Regression testing",
+          "text": "Re-running existing tests after a change to confirm that functions which worked before still work."
+        },
+        {
+          "term": "Test pyramid",
+          "text": "A model for distributing automated tests: a broad base of unit tests, fewer API and integration tests, and the fewest tests through the user interface."
+        }
+      ],
+      "simple": "Software testing means checking that a program does what it should, before real users find out that it does not. You can check by hand, or let a tool repeat the checks for you.",
+      "body": [
+        "A manual test is a person following steps and looking at the result. An automated test is the same steps and checks carried out by a tool. Manual testing suits new features and exploring. Automation pays off for checks that have to be repeated many times.",
+        "Tests are grouped by level. Unit tests check one small piece of code. Integration tests check that pieces work together, often through an API. System tests check the whole application, and acceptance tests check that it does what the business needs. Tosca is mostly used from the API level upwards.",
+        "The most repeated job is regression testing: running the existing tests again after every change, to make sure nothing that worked before is now broken. A smoke test is a short first check that the application starts and its main paths work. The test pyramid is a rule of thumb: have many fast tests at the bottom and only as many slow screen tests as you really need."
+      ],
+      "graphics": [
+        {
+          "type": "stack",
+          "title": "The test pyramid, from top to base",
+          "layers": [
+            {
+              "label": "UI tests (top)",
+              "text": "Few. Slow, but closest to what a user does."
+            },
+            {
+              "label": "API and integration tests",
+              "text": "More. Fast and stable, because no screen is involved."
+            },
+            {
+              "label": "Unit tests (base)",
+              "text": "Most. Written by developers and run in seconds."
+            }
+          ]
+        },
+        {
+          "type": "compare",
+          "title": "Manual and automated testing",
+          "columns": [
+            {
+              "title": "Manual",
+              "points": [
+                "A person performs the steps.",
+                "Good for new, changing or one-time checks.",
+                "Costs the same every time it is repeated."
+              ]
+            },
+            {
+              "title": "Automated",
+              "points": [
+                "A tool performs the steps.",
+                "Good for stable checks that are repeated often.",
+                "Costs effort once, then runs for almost nothing."
+              ]
+            }
+          ]
+        }
+      ],
+      "example": {
+        "title": "What to automate first",
+        "intro": "A team has four checks and time to automate two of them.",
+        "grid": {
+          "columns": [
+            "Check",
+            "How often",
+            "Decision"
+          ],
+          "rows": [
+            [
+              "Log in and place an order",
+              "Every release, in every environment",
+              "Automate first"
+            ],
+            [
+              "Month-end invoice run",
+              "Every month, with many data combinations",
+              "Automate"
+            ],
+            [
+              "A new screen that still changes daily",
+              "A few times",
+              "Test by hand until it is stable"
+            ],
+            [
+              "A one-time data migration check",
+              "Once",
+              "Test by hand"
+            ]
+          ]
+        },
+        "outcome": "Automation goes to the stable checks that are repeated. The rest stays manual for now."
+      },
+      "points": [
+        "Manual testing explores; automation repeats.",
+        "Levels: unit, integration, system, acceptance.",
+        "Regression testing reruns old tests after every change.",
+        "Pyramid: many fast tests, few slow UI tests."
+      ],
+      "mistake": "Trying to automate everything. A test that runs once, or a screen that changes every day, costs more to automate than it saves.",
+      "docs": [],
+      "questions": null
+    },
+    {
       "id": "what-is-tosca",
       "unit": 1,
       "title": "What is Tosca?",
+      "definitions": [
+        {
+          "term": "Tricentis Tosca",
+          "text": "A commercial test automation tool from Tricentis for functional and regression testing of applications through their user interface and their APIs. Tests are assembled from reusable building blocks, without writing program code."
+        },
+        {
+          "term": "Model-based test automation",
+          "text": "An approach in which the technical description of the application (the model, in Tosca the Modules) is stored separately from the tests and the test data, so that a change in the application is corrected once, in the model."
+        }
+      ],
       "simple": "Tricentis Tosca is a tool that tests software automatically. You do not write code. You build tests from ready-made building blocks, a bit like putting Lego bricks together.",
       "body": [
         "Testing by hand means a person clicks through the application again after every change. Tosca does those clicks, entries and checks for you. You describe once what should happen, and Tosca repeats it whenever you want.",
@@ -147,7 +281,140 @@ window.TOSCA_STUDY = {
       "docs": [
         {
           "title": "Steer with Engines 3.0",
-          "url": "https://documentation.tricentis.com/tosca/2320/en/content/tbox/tbox_intro.htm"
+          "url": "https://docs.tricentis.com/tosca-2023.2/en-us/content/tbox/tbox_intro.htm"
+        }
+      ],
+      "questions": null
+    },
+    {
+      "id": "editions-and-installation",
+      "unit": 1,
+      "title": "Editions, installation and licences",
+      "definitions": [
+        {
+          "term": "On-premises installation",
+          "text": "A Tosca setup that a company installs and operates on its own machines: Tosca Commander on the testers' PCs, plus Tosca Server and a repository database for team use."
+        },
+        {
+          "term": "Tosca Cloud",
+          "text": "The software-as-a-service edition of Tosca. It is hosted by Tricentis and used through a web browser, and agents carry out the test runs."
+        },
+        {
+          "term": "Floating licence",
+          "text": "A licence that a machine takes from a shared pool when it starts a Tosca component and returns to the pool afterwards. The pool is hosted by Tricentis (cloud licensing) or by your own License Server (on-premises licensing)."
+        },
+        {
+          "term": "Node-locked licence",
+          "text": "A licence that is permanently bound to one specific machine and cannot be used by any other."
+        }
+      ],
+      "simple": "Tosca comes in two forms: a Windows program that you install (on-premises), and Tosca Cloud, which you open in a browser. Either way, you need a licence before you can work.",
+      "body": [
+        "The on-premises product has several parts. Tosca Commander is the client on your Windows machine, where you build and run tests. Tosca Server is installed once for the team and hosts shared services such as Distributed Execution and the Test Data Service. A team that shares a project also needs a database for the common repository, for example Microsoft SQL Server or Oracle.",
+        "Check the system requirements for your version before you install. For Tosca 2026.1 the manual lists 64-bit Windows 10 or 11, a dual-core 2.4 GHz processor, 8 GB of memory (16 GB recommended) and 10 GB of disk space. For web testing, the Tosca browser extension must also be added to Chrome, Edge or Firefox.",
+        "There are three kinds of licence. With cloud licensing the licences float: a machine takes one from a pool hosted by Tricentis and gives it back when it is done. On-premises licensing floats in the same way, but the pool is on a Tricentis License Server inside your own network. A node-locked licence is bound to one machine, and nobody else can use it."
+      ],
+      "graphics": [
+        {
+          "type": "tree",
+          "title": "The parts of an on-premises setup",
+          "root": {
+            "label": "Tosca on-premises",
+            "text": "Installed and run by your company",
+            "children": [
+              {
+                "label": "Tosca Commander",
+                "text": "The client on each tester's Windows machine."
+              },
+              {
+                "label": "Tosca Server",
+                "text": "Shared services: Distributed Execution, Test Data Service and more."
+              },
+              {
+                "label": "Common repository",
+                "text": "A database that holds the team's project."
+              },
+              {
+                "label": "License Server",
+                "text": "Only needed for on-premises floating licences."
+              },
+              {
+                "label": "Agents",
+                "text": "Machines that run tests for Distributed Execution."
+              }
+            ]
+          }
+        },
+        {
+          "type": "compare",
+          "title": "On-premises and Tosca Cloud",
+          "columns": [
+            {
+              "title": "On-premises",
+              "points": [
+                "Tosca Commander is installed on Windows.",
+                "Your company runs the server and the database.",
+                "Runs are spread over machines with Distributed Execution."
+              ]
+            },
+            {
+              "title": "Tosca Cloud",
+              "points": [
+                "Opened in a browser and hosted by Tricentis.",
+                "You install only agents, on the machines that run tests.",
+                "Runs are spread with the Elastic Execution Grid."
+              ]
+            }
+          ]
+        }
+      ],
+      "example": {
+        "title": "Choosing a licence",
+        "intro": "Three situations and the licence type that fits each.",
+        "grid": {
+          "columns": [
+            "Situation",
+            "Licence",
+            "Why"
+          ],
+          "rows": [
+            [
+              "Ten testers, never more than six at work at once",
+              "Floating",
+              "Six licences are enough, because they are shared."
+            ],
+            [
+              "Everything must stay inside the company network",
+              "On-premises floating",
+              "The License Server runs in your own network."
+            ],
+            [
+              "One machine that must always be able to run",
+              "Node-locked",
+              "Its licence cannot be taken by anyone else."
+            ]
+          ]
+        }
+      },
+      "points": [
+        "On-premises: Commander, Server, repository database.",
+        "Tosca Cloud runs in the browser, with agents for execution.",
+        "Licences: cloud floating, on-premises floating, node-locked.",
+        "Check the system requirements for your exact version."
+      ],
+      "mistake": "Installing first and reading the requirements later. An unsupported browser version or a missing browser extension is a common reason why a fresh installation cannot scan a web page.",
+      "docs": [
+        {
+          "title": "Set up Tricentis Tosca",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/installation_tosca/tricentis_tosca_setup_overview.htm"
+        },
+        {
+          "title": "System requirements for Tosca 2026.1",
+          "url": "https://docs.tricentis.com/tosca-2026.1/en-us/content/systemrequirements/systemrequirements.htm"
+        },
+        {
+          "title": "License management",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/licensing/lic_administering_licenses.htm"
         }
       ],
       "questions": null
@@ -156,6 +423,20 @@ window.TOSCA_STUDY = {
       "id": "commander-and-workspace",
       "unit": 1,
       "title": "Tosca Commander and the workspace",
+      "definitions": [
+        {
+          "term": "Tosca Commander",
+          "text": "The main application of Tosca, in which tests are created, managed, executed and analysed."
+        },
+        {
+          "term": "Workspace",
+          "text": "The local working environment of one Tosca project in Tosca Commander. It holds the project's objects and is either single-user, or multi-user and connected to a common repository."
+        },
+        {
+          "term": "Section",
+          "text": "An area of a workspace for one kind of object, such as Modules, TestCases, Execution, Requirements or TestCaseDesign."
+        }
+      ],
       "simple": "Tosca Commander is the program you work in. A workspace is your project inside it, organised into sections for the different jobs: Modules, TestCases, Execution and more.",
       "body": [
         "When you start Tosca Commander you open a workspace. Its objects are grouped in tabs. The three you use every day are Modules (the scanned screens), TestCases (the tests) and Execution (the runs and their results). Further sections cover Requirements, TestCaseDesign, Reporting, Issues and Configurations.",
@@ -253,6 +534,20 @@ window.TOSCA_STUDY = {
       "id": "first-test",
       "unit": 1,
       "title": "Your first automated test",
+      "definitions": [
+        {
+          "term": "Scan",
+          "text": "Reading the controls of an application screen with XScan and saving the selected controls as a Module."
+        },
+        {
+          "term": "Trial run",
+          "text": "An execution in the ScratchBook, used while a TestCase is being built. Its results are not stored."
+        },
+        {
+          "term": "Official run",
+          "text": "An execution from an ExecutionList. Tosca stores its result and log, so it can be reported and compared with earlier runs."
+        }
+      ],
       "simple": "Every automated test in Tosca is made in the same four moves: scan the screen, build the TestCase, try it out, then run it officially.",
       "body": [
         "Scan: open the application, start XScan from the Modules section and select the controls you need. When you save, you have a Module.",
@@ -341,6 +636,20 @@ window.TOSCA_STUDY = {
       "id": "modules-and-xscan",
       "unit": 2,
       "title": "Modules and XScan",
+      "definitions": [
+        {
+          "term": "Module",
+          "text": "An object in Tosca Commander that holds the technical information Tosca needs to find and steer one screen, or one interface, of the application under test. TestCases refer to the Module and never store this information themselves."
+        },
+        {
+          "term": "ModuleAttribute",
+          "text": "One control of that screen inside a Module, such as a text box or a button, together with the properties used to identify it."
+        },
+        {
+          "term": "XScan",
+          "text": "The scanner of Tosca. It reads the controls of an open application and creates a Module from the controls you select."
+        }
+      ],
       "simple": "A Module is Tosca's saved description of one screen. XScan is the scanner that creates it by reading the controls on that screen.",
       "body": [
         "Before Tosca can click a button it has to know that the button exists and how to find it. Scanning gives it that knowledge. XScan lists the controls of the open screen, you tick the ones you need, and Tosca saves them as a Module.",
@@ -441,6 +750,28 @@ window.TOSCA_STUDY = {
       "id": "identifying-controls",
       "unit": 2,
       "title": "Identifying controls",
+      "definitions": [
+        {
+          "term": "Control identification",
+          "text": "The method by which a Module tells Tosca how to find a control in the application at runtime."
+        },
+        {
+          "term": "Identify by properties",
+          "text": "The control is found by its own technical properties, such as Id, Name or text."
+        },
+        {
+          "term": "Identify by anchor",
+          "text": "The control is found by its position relative to another control that can be identified uniquely."
+        },
+        {
+          "term": "Identify by image",
+          "text": "The control is found by comparing the screen with a stored picture of the control."
+        },
+        {
+          "term": "Identify by index",
+          "text": "The control is found by its position among the controls that match the same properties."
+        }
+      ],
       "simple": "Identifying a control means telling Tosca how to recognise it. There are four ways, and you should prefer them in a fixed order: properties, anchor, image, index.",
       "body": [
         "By properties: Tosca uses the control's own features, such as Id, Name or text. This is the most stable way. Remove properties that change on every load, and use a wildcard (*) when only part of a value changes.",
@@ -509,6 +840,24 @@ window.TOSCA_STUDY = {
       "id": "module-settings",
       "unit": 2,
       "title": "Maintaining and tuning Modules",
+      "definitions": [
+        {
+          "term": "Rescan",
+          "text": "Scanning a screen again into an existing Module, to update the Module after the application has changed while keeping its links to TestSteps."
+        },
+        {
+          "term": "ValueRange",
+          "text": "A property of a ModuleAttribute that lists the values offered for selection in the TestStep, separated by semicolons."
+        },
+        {
+          "term": "Cardinality",
+          "text": "A property of a ModuleAttribute that defines how often the attribute may be used in one TestStep: 0-1 by default, 0-N for repeated use."
+        },
+        {
+          "term": "Steering parameter",
+          "text": "A parameter on a Module or ModuleAttribute that changes how Tosca operates the control at runtime, for example ScrollingBehavior or WaitBefore."
+        }
+      ],
       "simple": "Screens change, so Modules need care. Rescan updates a Module after a change, and a few settings make Modules more flexible.",
       "body": [
         "Rescan: when the application changes, right-click the Module and rescan it. The links to all TestSteps are kept. Never scan a brand-new Module for a screen that already has one, because every TestCase would have to be rebuilt.",
@@ -571,7 +920,7 @@ window.TOSCA_STUDY = {
         },
         {
           "title": "Default properties for Modules",
-          "url": "https://documentation.tricentis.com/tosca/2320/en/content/tosca_commander/modules_properties.htm"
+          "url": "https://docs.tricentis.com/tosca-2023.2/en-us/content/tosca_commander/modules_properties.htm"
         }
       ],
       "questions": "Module scanning (XScan)"
@@ -580,6 +929,20 @@ window.TOSCA_STUDY = {
       "id": "testcases-and-steps",
       "unit": 3,
       "title": "TestCases, TestSteps and values",
+      "definitions": [
+        {
+          "term": "TestCase",
+          "text": "An object in Tosca Commander that describes one test as an ordered sequence of TestSteps."
+        },
+        {
+          "term": "TestStep",
+          "text": "One step of a TestCase, created by adding a Module to the TestCase. It performs actions on the controls of that Module."
+        },
+        {
+          "term": "TestStepValue",
+          "text": "One line of a TestStep, belonging to one ModuleAttribute. It carries the Value, the ActionMode and the DataType for that control."
+        }
+      ],
       "simple": "A TestCase is a list of steps. Each step comes from a Module, and each line of a step says: this control, this value, do this with it.",
       "body": [
         "Dragging a Module into a TestCase creates a TestStep. The TestStep shows one line for every control of the Module. Each line is a TestStepValue.",
@@ -662,6 +1025,32 @@ window.TOSCA_STUDY = {
       "id": "actionmodes",
       "unit": 3,
       "title": "ActionModes",
+      "definitions": [
+        {
+          "term": "ActionMode",
+          "text": "A setting of a TestStepValue that defines what Tosca does with the value on the control at runtime."
+        },
+        {
+          "term": "Input",
+          "text": "Enters the value into the control, or performs the action given as the value, such as {CLICK}. It is the default ActionMode."
+        },
+        {
+          "term": "Verify",
+          "text": "Compares the actual value or property of the control with the expected value and reports passed or failed."
+        },
+        {
+          "term": "Buffer",
+          "text": "Reads the current value of the control and stores it in a Buffer with the given name."
+        },
+        {
+          "term": "WaitOn",
+          "text": "Pauses the execution until the control has the stated value or property, or until the timeout is reached."
+        },
+        {
+          "term": "Constraint",
+          "text": "Limits a search to the items that match the value, for example the rows of a table in which a cell has a certain content."
+        }
+      ],
       "simple": "The ActionMode tells Tosca what to do with a value: type it in, check it, remember it, or wait for it.",
       "body": [
         "Input is the default. It enters the value, or performs the action written as the value, such as {CLICK}.",
@@ -749,9 +1138,162 @@ window.TOSCA_STUDY = {
       "questions": "TestCase design"
     },
     {
+      "id": "datatypes-and-workstates",
+      "unit": 3,
+      "title": "DataTypes and WorkStates",
+      "definitions": [
+        {
+          "term": "DataType",
+          "text": "A setting of a TestStepValue that defines how Tosca interprets the value: as String, Numeric, Date, Boolean or Password."
+        },
+        {
+          "term": "WorkState",
+          "text": "A property of a TestCase, named TestCaseWorkState, that records how far the TestCase has been developed: PLANNED, IN_WORK or COMPLETED."
+        }
+      ],
+      "simple": "The DataType tells Tosca how to read a value: as text, a number, a date, true or false, or a password. The WorkState tells people how far a TestCase is: planned, in work or completed.",
+      "body": [
+        "Every TestStepValue has a DataType. String is the default and treats the value as plain text. Numeric reads it as a number. Date reads it as a date, so a different date format does not break the check. Boolean is for True and False. Password shows asterisks instead of the value and stores it encrypted.",
+        "Choose the DataType that matches what you compare. Comparing amounts or counts only makes sense as Numeric, and a date should be compared as a Date, not as text that happens to look like one.",
+        "The WorkState is a property of the TestCase, called TestCaseWorkState, with three values. A new TestCase starts as PLANNED. Set it to IN_WORK when you start building and to COMPLETED when the TestCase is ready for an ExecutionList. The Requirements section uses the state when it calculates coverage: a PLANNED TestCase counts 20%, IN_WORK 50% and COMPLETED 100%."
+      ],
+      "graphics": [
+        {
+          "type": "grid",
+          "title": "The five DataTypes",
+          "columns": [
+            "DataType",
+            "The value is read as",
+            "Typical use"
+          ],
+          "rows": [
+            [
+              "String",
+              "Plain text (default)",
+              "Names, messages, most inputs"
+            ],
+            [
+              "Numeric",
+              "A number",
+              "Amounts, counts"
+            ],
+            [
+              "Date",
+              "A date",
+              "Delivery dates, deadlines"
+            ],
+            [
+              "Boolean",
+              "True or False",
+              "Checkboxes, whether a control exists"
+            ],
+            [
+              "Password",
+              "Hidden text, stored encrypted",
+              "Passwords"
+            ]
+          ]
+        },
+        {
+          "type": "flow",
+          "title": "The WorkState of a TestCase",
+          "steps": [
+            {
+              "label": "PLANNED",
+              "text": "Created, not built yet. Counts 20% in coverage."
+            },
+            {
+              "label": "IN_WORK",
+              "text": "Being built. Counts 50%."
+            },
+            {
+              "label": "COMPLETED",
+              "text": "Ready for an ExecutionList. Counts 100%."
+            }
+          ]
+        }
+      ],
+      "example": {
+        "title": "DataTypes in one TestStep",
+        "intro": "A checkout form with four different kinds of value.",
+        "grid": {
+          "columns": [
+            "TestStepValue",
+            "Value",
+            "ActionMode",
+            "DataType"
+          ],
+          "rows": [
+            [
+              "Password",
+              "secret",
+              "Input",
+              "Password"
+            ],
+            [
+              "Newsletter checkbox",
+              "True",
+              "Input",
+              "Boolean"
+            ],
+            [
+              "Order total",
+              "250",
+              "Verify",
+              "Numeric"
+            ],
+            [
+              "Delivery date",
+              "{DATE[][+3d][dd.MM.yyyy]}",
+              "Verify",
+              "Date"
+            ]
+          ]
+        },
+        "code": [
+          {
+            "label": "TQL search: find the TestCases that are still PLANNED",
+            "code": "=>SUBPARTS:TestCase[TestCaseWorkState==\"PLANNED\"]"
+          }
+        ]
+      },
+      "points": [
+        "String is the default DataType.",
+        "Numeric, Date and Boolean make comparisons reliable.",
+        "Password hides and encrypts the value.",
+        "WorkState: PLANNED, IN_WORK, COMPLETED."
+      ],
+      "mistake": "Leaving every TestCase on PLANNED. Coverage in the Requirements section then looks much worse than it is, and nobody can tell which tests are ready to run.",
+      "docs": [
+        {
+          "title": "Determine the project state",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/requirements/project_state.htm"
+        },
+        {
+          "title": "Best practices: TestCase progress",
+          "url": "https://docs.tricentis.com/tosca-2023.2/en-us/content/best_practices/testcases_progress.htm"
+        }
+      ],
+      "questions": "TestCase design"
+    },
+    {
       "id": "verify-and-wait",
       "unit": 3,
       "title": "Checking and waiting",
+      "definitions": [
+        {
+          "term": "Verification",
+          "text": "A check that compares an actual value or property of a control with an expected one, using ActionMode Verify. Its result is passed or failed."
+        },
+        {
+          "term": "Control property",
+          "text": "A characteristic of a control that can be read at runtime, such as Exists, Enabled or Visible. In a Value it is written with a leading dot, for example .Visible==True."
+        },
+        {
+          "term": "Synchronization",
+          "text": "Making the test wait until the application is ready for the next action. ActionMode WaitOn waits for a state and continues as soon as it is reached; the module TBox Wait waits for a fixed time."
+        }
+      ],
       "simple": "Checking means asking 'is this right?'. Waiting means 'do not continue until this is ready'. Tosca does both on a control's value or on its properties.",
       "body": [
         "The simplest check compares a control's value: put the expected text in the Value and set ActionMode Verify. To check a property instead, type it with a leading dot, an operator and the expected value, for example .Enabled==True. The operators are ==, !=, >, <, <= and >=.",
@@ -831,6 +1373,20 @@ window.TOSCA_STUDY = {
       "id": "reusable-blocks",
       "unit": 3,
       "title": "Reusable TestStepBlocks",
+      "definitions": [
+        {
+          "term": "Reusable TestStepBlock",
+          "text": "A group of TestSteps that is stored once in a TestStepLibrary and inserted into TestCases as a reference, so that a change to the block applies to every TestCase that uses it."
+        },
+        {
+          "term": "TestStepLibrary",
+          "text": "The folder in the TestCases section that contains Reusable TestStepBlocks."
+        },
+        {
+          "term": "Business Parameter",
+          "text": "A parameter of a Reusable TestStepBlock through which each TestCase passes its own value into the block. Inside the block it is read with {PL[Name]}."
+        }
+      ],
       "simple": "A Reusable TestStepBlock is a group of steps stored once and used in many TestCases. Change the block and every TestCase changes with it.",
       "body": [
         "Some steps appear in almost every test: logging in, opening a menu, logging out. Copying them into two hundred TestCases means two hundred edits when the login page changes.",
@@ -900,7 +1456,7 @@ window.TOSCA_STUDY = {
       "docs": [
         {
           "title": "Reusable TestStepBlocks",
-          "url": "https://documentation.tricentis.com/tosca/2410/en/content/tosca_commander/reusable_teststepblocks.htm"
+          "url": "https://docs.tricentis.com/tosca-2024.1/en-us/content/tosca_commander/reusable_teststepblocks.htm"
         }
       ],
       "questions": "TestCase design"
@@ -909,6 +1465,20 @@ window.TOSCA_STUDY = {
       "id": "conditions-and-loops",
       "unit": 3,
       "title": "Conditions and loops",
+      "definitions": [
+        {
+          "term": "If statement",
+          "text": "A structure with a Condition, a Then part and an optional Else part. The Then steps run when the condition passes, the Else steps when it fails."
+        },
+        {
+          "term": "Loop",
+          "text": "A structure that executes its steps repeatedly. A While loop checks its condition before each pass, a Do loop after each pass."
+        },
+        {
+          "term": "Repetition",
+          "text": "A property of a TestStep folder that makes the steps in the folder run a fixed number of times."
+        }
+      ],
       "simple": "A condition runs steps only when something is true. A loop repeats steps. Tosca has If for conditions, and While, Do and Repetition for loops.",
       "body": [
         "An If statement has a Condition, a Then part and an optional Else part. The condition is normally a verification step or a TBox Evaluation Tool step. If it passes, Then runs; if it fails, Else runs. A failed condition does not fail the TestCase.",
@@ -988,6 +1558,16 @@ window.TOSCA_STUDY = {
       "id": "buffers",
       "unit": 4,
       "title": "Buffers",
+      "definitions": [
+        {
+          "term": "Buffer",
+          "text": "A named variable that stores a value during execution, so that later TestSteps and TestCases on the same machine can read it with {B[Name]}."
+        },
+        {
+          "term": "XBuffer",
+          "text": "The expression {XB[Name]}. Used with ActionMode Verify, it checks the fixed part of a text and stores the changing part in a Buffer."
+        }
+      ],
       "simple": "A Buffer is a named box that remembers a value while your tests run. You put something in under a name and take it out later by that name.",
       "body": [
         "Tests often need a value that only exists at runtime, such as an order number the application has just created. A Buffer keeps it. Store with ActionMode Buffer, where the Value is the Buffer's name, or with the module TBox Set Buffer. Read it anywhere with {B[Name]}.",
@@ -1063,6 +1643,24 @@ window.TOSCA_STUDY = {
       "id": "dynamic-expressions",
       "unit": 4,
       "title": "Generated values: random, dates, calculations, text",
+      "definitions": [
+        {
+          "term": "Dynamic expression",
+          "text": "An expression in curly brackets, written in a Value, that Tosca evaluates at runtime and replaces with the result."
+        },
+        {
+          "term": "Random expression",
+          "text": "An expression that produces a new value on every run, such as {RND[5]} for a five-digit number or {RANDOMTEXT[6]} for six characters."
+        },
+        {
+          "term": "Date expression",
+          "text": "An expression of the form {DATE[base][offset][format]} that produces a date relative to a base date, for example tomorrow."
+        },
+        {
+          "term": "Calculation expression",
+          "text": "An expression that computes a result: {MATH[...]} inside Tosca, or {CALC[...]} with the help of Microsoft Excel."
+        }
+      ],
       "simple": "Tosca can create values while the test runs: a random number, tomorrow's date, the result of a sum, or a changed piece of text. You write an expression in curly brackets and Tosca replaces it.",
       "body": [
         "Random values keep tests repeatable when data must be unique. {RND[5]} gives a five-digit number, {RANDOMTEXT[6]} six letters and digits, and {RANDOMREGEX[\"...\"]} a text that follows a pattern.",
@@ -1174,6 +1772,16 @@ window.TOSCA_STUDY = {
       "id": "test-configuration-parameters",
       "unit": 4,
       "title": "Test Configuration Parameters",
+      "definitions": [
+        {
+          "term": "Test Configuration Parameter (TCP)",
+          "text": "A named parameter attached to an object such as a folder, a TestCase or an ExecutionList. It holds a configuration value for the execution and is read in a Value with {CP[Name]}."
+        },
+        {
+          "term": "Inheritance",
+          "text": "The rule that a Test Configuration Parameter applies to every object below the one it is set on, unless a lower object sets its own value. A value on the execution side overrides the same parameter on the TestCase."
+        }
+      ],
       "simple": "A Test Configuration Parameter (TCP) is a setting you attach to a folder, a TestCase or an ExecutionList, such as which browser to use. Everything below it inherits the setting.",
       "body": [
         "Some values are not test data but configuration: the browser, the address of the test environment, a timeout. Typing them into steps would mean changing hundreds of steps to switch environment.",
@@ -1240,7 +1848,7 @@ window.TOSCA_STUDY = {
         },
         {
           "title": "XBrowser Engine 3.0",
-          "url": "https://documentation.tricentis.com/tosca/2410/en/content/engines_3.0/xbrowser/xbrowser.htm"
+          "url": "https://docs.tricentis.com/tosca-2024.1/en-us/content/engines_3.0/xbrowser/xbrowser.htm"
         }
       ],
       "questions": "Buffers and parameterisation"
@@ -1249,6 +1857,24 @@ window.TOSCA_STUDY = {
       "id": "testcase-design",
       "unit": 4,
       "title": "TestCaseDesign: data and combinations",
+      "definitions": [
+        {
+          "term": "TestCaseDesign",
+          "text": "The section of Tosca Commander in which test data is designed separately from the TestCases and combined into test cases in a systematic way."
+        },
+        {
+          "term": "TestSheet",
+          "text": "The object in TestCaseDesign that holds the Attributes of one test design, their Instances and the combinations built from them."
+        },
+        {
+          "term": "Attribute and Instance",
+          "text": "An Attribute is something that varies in a test, such as the payment type. An Instance is one value it can take, such as card or invoice."
+        },
+        {
+          "term": "TestCase Template",
+          "text": "A TestCase with placeholders of the form {XL[Attribute]} that is linked to a TestSheet. Instantiating it creates one TestCase for each combination."
+        }
+      ],
       "simple": "TestCaseDesign is where you plan test data. You list what can vary and which values each thing can take, and Tosca creates the test cases for the combinations.",
       "body": [
         "A TestSheet holds Attributes (the things that vary, such as payment type) and Instances (their values, such as card or invoice). Tosca can generate combinations with several methods: All combinations, Pairwise, Orthogonal and Linear expansion.",
@@ -1347,6 +1973,16 @@ window.TOSCA_STUDY = {
       "id": "test-data-service",
       "unit": 4,
       "title": "Test Data Service",
+      "definitions": [
+        {
+          "term": "Test Data Service (TDS)",
+          "text": "A service of Tosca Server that stores test data centrally and provides it to tests at runtime, on whichever machine they run."
+        },
+        {
+          "term": "Locking",
+          "text": "The mechanism by which a data record that one test has fetched cannot be retrieved by another test, so no two tests use the same record."
+        }
+      ],
       "simple": "Test Data Service (TDS) is a shared store of test data. A test fetches an entry, uses it and marks it as used, so two tests never take the same one.",
       "body": [
         "Hard-coded values and shared spreadsheets break when tests run in parallel, or when data can be used only once. TDS keeps the data centrally on the Tosca Server, so every machine and every test works with the same pool.",
@@ -1424,6 +2060,20 @@ window.TOSCA_STUDY = {
       "id": "tables",
       "unit": 5,
       "title": "Working with tables",
+      "definitions": [
+        {
+          "term": "Table control",
+          "text": "A single ModuleAttribute that represents a whole table. Its rows, columns and cells are addressed in the TestStep and not scanned one by one."
+        },
+        {
+          "term": "Row and column address",
+          "text": "The position of a row or column: $n counts from the header, so $1 is the first data row, and #n is the absolute position."
+        },
+        {
+          "term": "Constraint",
+          "text": "The ActionMode that selects a table row by its content: Tosca uses the row in which the given cell has the given value."
+        }
+      ],
       "simple": "Tosca treats a table as rows, columns and cells. You can reach a cell by its position, or better, by its content: 'the row where Name is John'.",
       "body": [
         "Scan a table as one Table control, not cell by cell. In the TestStep you then add rows and cells as needed.",
@@ -1518,6 +2168,24 @@ window.TOSCA_STUDY = {
       "id": "dynamic-controls",
       "unit": 5,
       "title": "Controls that change at runtime",
+      "definitions": [
+        {
+          "term": "Dynamic control",
+          "text": "A control whose identifying properties, number or position are known only at runtime."
+        },
+        {
+          "term": "ExplicitName",
+          "text": "A configuration parameter of a ModuleAttribute. When it is True, the TestStep names the control to steer at runtime, for example #2 for the second match."
+        },
+        {
+          "term": "ResultCount",
+          "text": "A property that returns how many controls match the identification of a ModuleAttribute."
+        },
+        {
+          "term": "Wildcard",
+          "text": "The character * in an identification value. It stands for any text, so Report* matches every title that starts with Report."
+        }
+      ],
       "simple": "Sometimes Tosca cannot know in advance which element it will meet: a list of search results, several identical buttons, a window title that changes. A few techniques let the test decide at runtime.",
       "body": [
         "Several similar controls: scan one of them and keep only the properties they all share. Add the configuration parameter ExplicitName = True. The TestStep can now choose by position, for example #2 for the second match.",
@@ -1605,6 +2273,16 @@ window.TOSCA_STUDY = {
       "id": "standard-modules",
       "unit": 5,
       "title": "The TBox toolbox: standard modules",
+      "definitions": [
+        {
+          "term": "Standard subset",
+          "text": "The collection of ready-made Modules delivered with Tosca. They are imported into a project and used without scanning."
+        },
+        {
+          "term": "TBox Automation Tools",
+          "text": "The part of the Standard subset with general-purpose Modules that do not belong to a screen, for example for Buffers, waiting, files, starting programs and sending keys."
+        }
+      ],
       "simple": "Tosca ships with ready-made Modules for common jobs: opening a browser, waiting, working with files, Excel and databases, pressing keys. Together they are the Standard subset.",
       "body": [
         "You use a standard module like any other Module: search for it, drag it into the TestCase and fill in the values. Nothing has to be scanned.",
@@ -1745,6 +2423,20 @@ window.TOSCA_STUDY = {
       "id": "scratchbook-and-executionlists",
       "unit": 6,
       "title": "ScratchBook and ExecutionLists",
+      "definitions": [
+        {
+          "term": "ScratchBook",
+          "text": "A temporary execution area for trial runs of TestCases or single TestSteps. Tosca stores neither its structure nor its results."
+        },
+        {
+          "term": "ExecutionList",
+          "text": "An object in the Execution section that contains the TestCases to be run and stores the result of every run."
+        },
+        {
+          "term": "ExecutionEntry",
+          "text": "The representation of one TestCase inside an ExecutionList, together with the logs of its runs."
+        }
+      ],
       "simple": "The ScratchBook is a notepad for trying a test while you build it. An ExecutionList is the official run, where Tosca keeps the results.",
       "body": [
         "While building, you run a TestCase, or just a few steps, in the ScratchBook. You see at once what passed and failed. Tosca does not save the ScratchBook's structure or its results.",
@@ -1823,9 +2515,113 @@ window.TOSCA_STUDY = {
       "questions": "Execution lists and DEX"
     },
     {
+      "id": "browsers-and-cross-browser",
+      "unit": 6,
+      "title": "Browsers and cross-browser runs",
+      "definitions": [
+        {
+          "term": "XBrowser engine",
+          "text": "The engine of Tosca that automates web applications in browsers. It communicates with the browser through the Tosca browser extension."
+        },
+        {
+          "term": "Cross-browser testing",
+          "text": "Executing the same tests in several browsers to confirm that the application behaves the same way in each of them."
+        },
+        {
+          "term": "Configuration",
+          "text": "A bundle of Test Configuration Parameters that is maintained in one place and assigned to objects such as ExecutionLists."
+        }
+      ],
+      "simple": "Users open your web application in different browsers. A cross-browser run executes the same TestCase in each of them, and in Tosca the only thing you change is one parameter.",
+      "body": [
+        "Web pages are automated by the XBrowser engine. It works with the browser through the Tosca browser extension, so the extension has to be installed and enabled in every browser you test with.",
+        "The browser is chosen by the Test Configuration Parameter named Browser. The usual values are Chrome, Edge and Firefox. A Module describes the page, not the browser, so you do not scan the page again for each browser.",
+        "For a cross-browser run, create one ExecutionList per browser, put the same TestCases into each and set Browser on the ExecutionList. Configurations save typing here: a configuration is a bundle of Test Configuration Parameters kept in one place, which you assign to an object. Also keep the Windows display scaling at a standard value such as 100% or 125%, because the engine needs that to scan and steer pages properly."
+      ],
+      "graphics": [
+        {
+          "type": "tree",
+          "title": "One TestCase, three runs",
+          "root": {
+            "label": "TestCase: Place an order",
+            "text": "Built once, with no browser named in its steps",
+            "children": [
+              {
+                "label": "ExecutionList Chrome",
+                "text": "Browser = Chrome"
+              },
+              {
+                "label": "ExecutionList Edge",
+                "text": "Browser = Edge"
+              },
+              {
+                "label": "ExecutionList Firefox",
+                "text": "Browser = Firefox"
+              }
+            ]
+          }
+        }
+      ],
+      "example": {
+        "title": "Setting the browser for each run",
+        "intro": "The same TestCases are dragged into three ExecutionLists. Each list carries its own value.",
+        "code": [
+          {
+            "label": "Test Configuration Parameter on the ExecutionList 'Regression Chrome'",
+            "code": "Browser = Chrome"
+          },
+          {
+            "label": "On the ExecutionList 'Regression Edge'",
+            "code": "Browser = Edge"
+          },
+          {
+            "label": "On the ExecutionList 'Regression Firefox'",
+            "code": "Browser = Firefox"
+          }
+        ],
+        "outcome": "Three results for every TestCase, one per browser, without a single copied step."
+      },
+      "points": [
+        "The XBrowser engine needs the browser extension.",
+        "The parameter Browser selects the browser.",
+        "One ExecutionList per browser, same TestCases.",
+        "A configuration bundles parameters in one place."
+      ],
+      "mistake": "Copying the TestCases once per browser. Three copies mean three places to repair. Keep one TestCase and change only the parameter.",
+      "docs": [
+        {
+          "title": "XBrowser Engine 3.0",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/engines_3.0/xbrowser/xbrowser.htm"
+        },
+        {
+          "title": "Test configuration parameters",
+          "url": "https://docs.tricentis.com/tosca-2026.1/en-us/content/tosca_commander/tcp_list.htm"
+        }
+      ],
+      "questions": "Execution lists and DEX"
+    },
+    {
       "id": "recovery-and-cleanup",
       "unit": 6,
       "title": "Failures, recovery and cleanup",
+      "definitions": [
+        {
+          "term": "Dialog failure",
+          "text": "A failure in which Tosca could not find or operate a control, for example because an unexpected pop-up covers it."
+        },
+        {
+          "term": "Verification failure",
+          "text": "A failure in which the control was found but its actual value differs from the expected value."
+        },
+        {
+          "term": "Recovery Scenario",
+          "text": "A set of TestSteps that Tosca runs automatically after a failure to return the application to a state from which the test can continue. It works only in ExecutionLists."
+        },
+        {
+          "term": "CleanUp Scenario",
+          "text": "A set of TestSteps that resets the application, for example by closing the browser, so that the next TestCase starts from a clean state."
+        }
+      ],
       "simple": "Tests fail for two reasons: Tosca could not operate something, or a check came out wrong. You decide what happens next: stop, continue, or try to recover.",
       "body": [
         "A dialog failure means Tosca could not operate a control, for example because an unexpected pop-up is in the way. A verification failure means the control was found but the value was wrong, which is often a real defect.",
@@ -1897,6 +2693,20 @@ window.TOSCA_STUDY = {
       "id": "distributed-execution",
       "unit": 6,
       "title": "Distributed Execution (DEX)",
+      "definitions": [
+        {
+          "term": "Distributed Execution (DEX)",
+          "text": "The component of Tosca that distributes test runs to several machines, so that they execute in parallel and without a person present."
+        },
+        {
+          "term": "Agent",
+          "text": "A machine that receives tests from the Distribution Server, executes them and sends the results back."
+        },
+        {
+          "term": "TestEvent",
+          "text": "A group of ExecutionLists that is started and distributed as one run."
+        }
+      ],
       "simple": "Distributed Execution runs your tests on several machines at once. A suite that takes ten hours on one machine can finish in one hour on ten.",
       "body": [
         "Three parts work together. On your machine you prepare the run in Tosca Commander. The Distribution Server hands out the work. Agents are the machines that execute the tests and send the results back.",
@@ -1973,9 +2783,140 @@ window.TOSCA_STUDY = {
       "questions": "Execution lists and DEX"
     },
     {
+      "id": "cloud-execution",
+      "unit": 6,
+      "title": "Running in the cloud: Elastic Execution Grid",
+      "definitions": [
+        {
+          "term": "Elastic Execution Grid",
+          "text": "The test execution service of Tosca Cloud. It distributes runs to agents, as Distributed Execution does on-premises, and is hosted by Tricentis."
+        },
+        {
+          "term": "Agent",
+          "text": "A machine that executes tests for the grid: a personal agent (your own PC), a team agent (a machine your team owns) or a cloud agent (hosted by Tricentis)."
+        },
+        {
+          "term": "Playlist",
+          "text": "In Tosca Cloud, a collection of tests that is run together."
+        },
+        {
+          "term": "Characteristic",
+          "text": "A label on a playlist and on agents. A playlist is sent only to agents whose characteristics match."
+        }
+      ],
+      "simple": "The Elastic Execution Grid is the part of Tosca Cloud that runs tests. It does the same job as Distributed Execution, but Tricentis hosts the service, so your team has no execution server to look after.",
+      "body": [
+        "Tests run on agents, and there are three kinds. A personal agent is your own machine, for local runs while you build. A team agent is installed on a machine that your team owns and can run tests unattended. A cloud agent is hosted and maintained by Tricentis.",
+        "Cloud agents have only standard Windows applications and web browsers installed, so they suit web tests. A test that needs SAP GUI, a desktop program or special files needs a team agent on which that software is installed.",
+        "In Tosca Cloud, the tests to run are collected in a playlist. Labels called characteristics decide which agents may take a playlist. A team that works on-premises can keep its tests in Tosca Commander and send only the execution to the cloud. A pipeline can start a playlist run through the Tosca Cloud API and collect the results in JUnit format."
+      ],
+      "graphics": [
+        {
+          "type": "compare",
+          "title": "Three kinds of agent",
+          "columns": [
+            {
+              "title": "Personal agent",
+              "points": [
+                "Your own machine.",
+                "For local runs while building.",
+                "You see the test run."
+              ]
+            },
+            {
+              "title": "Team agent",
+              "points": [
+                "A machine your team owns.",
+                "Runs unattended.",
+                "Has whatever software you install on it."
+              ]
+            },
+            {
+              "title": "Cloud agent",
+              "points": [
+                "Hosted and maintained by Tricentis.",
+                "Standard Windows applications and browsers only.",
+                "Best for web tests."
+              ]
+            }
+          ]
+        }
+      ],
+      "example": {
+        "title": "Which agent runs it?",
+        "intro": "Three playlists with different needs.",
+        "grid": {
+          "columns": [
+            "Playlist",
+            "Needs",
+            "Runs on"
+          ],
+          "rows": [
+            [
+              "Web shop regression",
+              "Chrome or Edge only",
+              "Cloud agent"
+            ],
+            [
+              "SAP order to cash",
+              "SAP GUI installed",
+              "Team agent with SAP GUI"
+            ],
+            [
+              "A test you are still building",
+              "Your own screen",
+              "Personal agent"
+            ]
+          ]
+        },
+        "code": [
+          {
+            "label": "Characteristic on a playlist that should run on cloud agents only",
+            "code": "Agent-type=Cloud-agent"
+          }
+        ]
+      },
+      "points": [
+        "The Elastic Execution Grid is execution in Tosca Cloud.",
+        "Agents: personal, team and cloud.",
+        "Cloud agents suit web tests.",
+        "Characteristics route a playlist to the right agents."
+      ],
+      "mistake": "Sending a test to a cloud agent when it needs software the agent does not have. It fails at the first step that looks for the missing application.",
+      "docs": [
+        {
+          "title": "Tosca Cloud integration",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/cloud_integration/cloud_integration_overview.htm"
+        },
+        {
+          "title": "Use cloud agents",
+          "url": "https://docs.tricentis.com/tosca-cloud/en-us/content/admin_guide/agents_cloud.htm"
+        },
+        {
+          "title": "Transition from DEX to the Elastic Execution Grid",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/cloud_integration/migrate_dex_e2g.htm"
+        }
+      ],
+      "questions": "Execution lists and DEX"
+    },
+    {
       "id": "ci-cd",
       "unit": 6,
       "title": "CI/CD integration",
+      "definitions": [
+        {
+          "term": "CI/CD",
+          "text": "Continuous integration and continuous delivery: a practice in which every change to the software is built, tested and delivered automatically by a pipeline."
+        },
+        {
+          "term": "CI/CD integration",
+          "text": "Starting Tosca tests from a pipeline through a command-line client, which triggers the run and returns the results to the pipeline."
+        },
+        {
+          "term": "JUnit result",
+          "text": "An XML result format that pipeline tools such as Jenkins and Azure DevOps can read and display."
+        }
+      ],
       "simple": "CI/CD means software is built, tested and delivered automatically. Integrating Tosca means the pipeline starts the Tosca tests by itself after each build and reads the results.",
       "body": [
         "The pipeline, for example in Jenkins or Azure DevOps, does not open Tosca Commander. A command-line client triggers a TestEvent, which runs through Distributed Execution. The client waits and returns the results.",
@@ -2044,6 +2985,24 @@ window.TOSCA_STUDY = {
       "id": "api-testing",
       "unit": 7,
       "title": "API testing",
+      "definitions": [
+        {
+          "term": "API",
+          "text": "Application programming interface: a defined interface through which programs exchange requests and responses without a user interface."
+        },
+        {
+          "term": "API testing",
+          "text": "Testing an application by sending requests directly to its API and verifying the responses."
+        },
+        {
+          "term": "API Scan",
+          "text": "The Tosca tool for creating and sending API requests, checking the responses and exporting them to Tosca Commander as Modules and TestCases."
+        },
+        {
+          "term": "Chaining",
+          "text": "Passing a value from the response of one request, such as a token, into a later request."
+        }
+      ],
       "simple": "An API is a way for programs to talk to each other without a screen. API testing sends a request directly to the application and checks the answer.",
       "body": [
         "API tests are fast and stable because no screen is involved. They are also the only way to test a system that has no user interface.",
@@ -2136,9 +3095,236 @@ window.TOSCA_STUDY = {
       "questions": "API testing"
     },
     {
+      "id": "service-virtualization",
+      "unit": 7,
+      "title": "Service virtualization (OSV)",
+      "definitions": [
+        {
+          "term": "Service virtualization",
+          "text": "Simulating the behaviour of a service that the system under test depends on, so that testing does not need the real service."
+        },
+        {
+          "term": "Orchestrated Service Virtualization (OSV)",
+          "text": "The Tosca component for service virtualization. It answers the requests of the system under test with prepared responses."
+        },
+        {
+          "term": "OSV Scenario",
+          "text": "The definition of one simulated business case: the order and the content of the request and response messages."
+        },
+        {
+          "term": "Service port",
+          "text": "A virtual service endpoint in an OSV Environment. One is created for each real service that is replaced."
+        }
+      ],
+      "simple": "Service virtualization replaces a system that your application depends on with a stand-in that gives prepared answers. Your tests can then run even when the real system is down, unfinished or charges money for every call.",
+      "body": [
+        "Most applications call other systems: a payment provider, a credit check, a partner's service. When one of them is not available, your test fails although your own application is fine. Tosca's Orchestrated Service Virtualization, OSV for short, plays the part of that system.",
+        "A virtual service is described as a Scenario: which request comes in, and which response goes out. In Tosca Commander a Scenario is built like a TestCase. You can create one from messages in API Scan, convert an existing API TestCase, or record the real traffic between your application and the real service with the recorder in the OSV Monitor.",
+        "Scenarios run in an OSV Environment. For each real service you create a service port there. It is the virtual address that your application calls instead of the real one. The OSV Monitor is the place where you start, stop and watch environments and Scenarios."
+      ],
+      "graphics": [
+        {
+          "type": "flow",
+          "title": "How a virtual service answers",
+          "steps": [
+            {
+              "label": "Application",
+              "text": "Your application sends a request, as always."
+            },
+            {
+              "label": "Service port",
+              "text": "The request arrives at OSV, not at the real service."
+            },
+            {
+              "label": "Scenario",
+              "text": "OSV finds the Scenario that matches the request."
+            },
+            {
+              "label": "Response",
+              "text": "The prepared answer goes back to your application."
+            }
+          ]
+        }
+      ],
+      "example": {
+        "title": "A payment provider that is not available",
+        "intro": "Two Scenarios stand in for the provider, so the checkout test can cover both outcomes.",
+        "grid": {
+          "columns": [
+            "Direction",
+            "Message",
+            "Content"
+          ],
+          "rows": [
+            [
+              "Inbound, from your application",
+              "POST /payments",
+              "amount = 50.00, currency = EUR"
+            ],
+            [
+              "Outbound, from OSV",
+              "Response 200",
+              "status = approved, paymentId = P-1001"
+            ],
+            [
+              "Inbound, from your application",
+              "POST /payments",
+              "amount = 99999.00, currency = EUR"
+            ],
+            [
+              "Outbound, from OSV",
+              "Response 402",
+              "status = declined"
+            ]
+          ]
+        },
+        "outcome": "The approved and the declined path can both be tested, on any day and without paying per call."
+      },
+      "points": [
+        "OSV stands in for systems you depend on.",
+        "A Scenario defines requests and their responses.",
+        "Scenarios run in an OSV Environment, behind service ports.",
+        "Create Scenarios by hand, from API tests or by recording."
+      ],
+      "mistake": "Virtualizing the system you are supposed to test. Only the systems around it are replaced. Your own application stays real.",
+      "docs": [
+        {
+          "title": "Tosca Orchestrated Service Virtualization (OSV)",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/orchestrate/orchestrate.htm"
+        },
+        {
+          "title": "Tosca OSV Monitor overview",
+          "url": "https://docs.tricentis.com/tosca-2026.1/en-us/content/orchestrate/starting_orchestrate_monitor.htm"
+        }
+      ],
+      "questions": "API testing"
+    },
+    {
+      "id": "databases-pdf-and-mail",
+      "unit": 7,
+      "title": "Databases, PDF files and e-mail",
+      "definitions": [
+        {
+          "term": "Database testing",
+          "text": "Verifying data directly in a database by running SQL statements through the database Modules and checking the result."
+        },
+        {
+          "term": "DB Expert Module",
+          "text": "A database Module that opens the connection, runs one statement and closes the connection in a single TestStep."
+        },
+        {
+          "term": "PDF comparison",
+          "text": "Comparing a PDF file with a reference file using the Module PDF 1:1 Compare. The test passes when their similarity reaches the required Accuracy."
+        },
+        {
+          "term": "Mail Modules",
+          "text": "The Modules that connect to a mail server and send, find and verify e-mails without opening a mail program."
+        }
+      ],
+      "simple": "Many tests end outside the screen: a row is written to a database, a PDF invoice is created, a confirmation e-mail is sent. Tosca has engines that check each of these directly.",
+      "body": [
+        "Database: the database modules connect through a DSN or a connection string, run an SQL statement, and let you verify or buffer the result. The DB Expert Module does all three steps, open, run and close, in a single module.",
+        "PDF: the PDF engine works in two ways. You can scan a PDF like a screen and create text, image and table areas to verify. Or you compare a new file with a reference file using the module PDF 1:1 Compare. Its Accuracy value is the lowest similarity in percent that still passes, and you can exclude areas, texts or whole pages that are allowed to differ, such as a date.",
+        "E-mail: the mail modules connect to a mail server over SMTP, POP3 or IMAP. Receive Mail Simple looks for one e-mail. Values with ActionMode Input are the search criteria, Verify checks the content, and Buffer stores a part of it, such as a confirmation code. Send Mail sends a message."
+      ],
+      "graphics": [
+        {
+          "type": "flow",
+          "title": "An order, checked from end to end",
+          "steps": [
+            {
+              "label": "Screen",
+              "text": "The order is placed in the application."
+            },
+            {
+              "label": "Database",
+              "text": "The order row exists with the right status."
+            },
+            {
+              "label": "PDF",
+              "text": "The invoice matches the reference file."
+            },
+            {
+              "label": "E-mail",
+              "text": "The confirmation has arrived."
+            }
+          ]
+        }
+      ],
+      "example": {
+        "title": "After placing an order",
+        "intro": "The order number was stored in the Buffer OrderNo by an earlier step.",
+        "grid": {
+          "columns": [
+            "Check",
+            "Module",
+            "What is verified"
+          ],
+          "rows": [
+            [
+              "Order saved",
+              "DB Expert Module",
+              "SELECT status FROM orders WHERE id = {B[OrderNo]} returns NEW"
+            ],
+            [
+              "Invoice correct",
+              "PDF 1:1 Compare",
+              "The new invoice matches the reference file. The area with the date is excluded."
+            ],
+            [
+              "Customer informed",
+              "Receive Mail Simple",
+              "An e-mail whose subject contains {B[OrderNo]} has arrived"
+            ]
+          ]
+        },
+        "outcome": "The test proves the whole chain, not only what the screen shows."
+      },
+      "points": [
+        "Database modules run SQL and verify the result.",
+        "The DB Expert Module opens, runs and closes in one step.",
+        "PDF: scan areas, or compare two files with PDF 1:1 Compare.",
+        "Mail: Input searches, Verify checks, Buffer stores."
+      ],
+      "mistake": "Opening the PDF viewer or the mail program and checking through its window. The engines read the file and the mailbox directly, which is faster and does not depend on what is on the screen.",
+      "docs": [
+        {
+          "title": "Database Modules",
+          "url": "https://docs.tricentis.com/tosca-2026.1/en-us/content/standard_subset/engines_3.0/database.htm"
+        },
+        {
+          "title": "PDF Engine 3.0",
+          "url": "https://docs.tricentis.com/tosca-2026.1/en-us/content/engines_3.0/pdf/pdf_engine.htm"
+        },
+        {
+          "title": "Mail Modules",
+          "url": "https://docs.tricentis.com/tosca-2026.1/en-us/content/standard_subset/engines_3.0/mail.htm"
+        }
+      ],
+      "questions": "TBox"
+    },
+    {
       "id": "sap-testing",
       "unit": 7,
       "title": "SAP testing",
+      "definitions": [
+        {
+          "term": "SAP GUI",
+          "text": "The desktop client of SAP. Tosca steers it through the SAP GUI Scripting interface."
+        },
+        {
+          "term": "SAP GUI Scripting",
+          "text": "The automation interface of SAP GUI. It must be enabled on the SAP server and in the SAP GUI options before Tosca can scan or steer SAP screens."
+        },
+        {
+          "term": "Transaction code",
+          "text": "A short code, also called T-code, that opens an SAP function directly, for example VA01 to create a sales order."
+        },
+        {
+          "term": "SAP Fiori",
+          "text": "The web-based user interface of SAP. It runs in a browser and is tested with the browser engine."
+        }
+      ],
       "simple": "Tosca automates SAP like any other application. For the classic SAP GUI there is one requirement first: SAP scripting has to be switched on.",
       "body": [
         "Tosca operates SAP GUI through SAP's own scripting interface. Scripting must be enabled on the server, with the parameter sapgui/user_scripting set in transaction RZ11, and in the SAP GUI options on your PC. If XScan shows no controls on an SAP screen, check this first.",
@@ -2207,9 +3393,132 @@ window.TOSCA_STUDY = {
       "questions": "SAP testing"
     },
     {
+      "id": "salesforce-and-mainframe",
+      "unit": 7,
+      "title": "Salesforce and mainframe applications",
+      "definitions": [
+        {
+          "term": "Salesforce Scan",
+          "text": "A scan that connects to a Salesforce system through its API and creates Modules for the controls it can reach."
+        },
+        {
+          "term": "HOST engine",
+          "text": "The engine of Tosca for mainframe applications. It steers text screens over TN3270 and TN5250 connections."
+        },
+        {
+          "term": "Terminal emulator",
+          "text": "A program that displays the text screens of a mainframe application on a PC."
+        }
+      ],
+      "simple": "Two more kinds of application have their own engine: Salesforce, a widely used cloud system for sales and service, and mainframe applications, the text screens of older business systems.",
+      "body": [
+        "Salesforce has a great many objects and screens, and scanning them one by one would take long. The Salesforce Scan, in the Modules menu, takes another route. It connects to your Salesforce system through the Salesforce API and creates Modules for all the controls it can reach. You enter a user name, a password and the environment, plus a security token if your machine is outside the trusted IP range.",
+        "A mainframe application shows text screens in a terminal emulator. The HOST engine steers these screens over TN3270 and TN5250 connections. You open a session in a supported emulator and scan it with Scan > Remote Terminal. The engine cannot detect the number of rows and columns of the screen by itself, so you enter them in the settings.",
+        "After scanning, both work like every other technology: Modules, TestSteps, values and ActionModes. Since Tosca 2023.2 the HOST engine also has a headless mode, which connects without an emulator window."
+      ],
+      "graphics": [
+        {
+          "type": "compare",
+          "title": "Two engines, two ways to get Modules",
+          "columns": [
+            {
+              "title": "Salesforce",
+              "points": [
+                "A cloud application in the browser.",
+                "Modules are created by the Salesforce Scan.",
+                "Needs a login, and a security token outside the trusted IP range."
+              ]
+            },
+            {
+              "title": "Mainframe (HOST)",
+              "points": [
+                "Text screens in a terminal emulator.",
+                "Modules are created with Scan > Remote Terminal.",
+                "Rows and columns of the screen are set by hand."
+              ]
+            }
+          ]
+        }
+      ],
+      "example": {
+        "title": "What the Salesforce Scan asks for",
+        "intro": "The four entries before the scan starts.",
+        "grid": {
+          "columns": [
+            "Entry",
+            "Example",
+            "Note"
+          ],
+          "rows": [
+            [
+              "User name",
+              "qa.tester@example.com",
+              "A user created for testing"
+            ],
+            [
+              "Password",
+              "(hidden)",
+              "The password of that user"
+            ],
+            [
+              "Environment",
+              "The test system",
+              "Scan the test system, not production"
+            ],
+            [
+              "Security token",
+              "From the user's Salesforce settings",
+              "Only needed outside the trusted IP range"
+            ]
+          ]
+        },
+        "outcome": "The scan creates Modules in the Modules folder, ready to be dragged into TestCases."
+      },
+      "points": [
+        "The Salesforce Scan builds Modules through the Salesforce API.",
+        "The HOST engine steers TN3270 and TN5250 screens.",
+        "Mainframe screens are scanned with Scan > Remote Terminal.",
+        "TestCases are built the same way as for any technology."
+      ],
+      "mistake": "Forgetting the security token. Outside the trusted IP range Salesforce refuses the login, and it looks as if the password were wrong.",
+      "docs": [
+        {
+          "title": "Use the Salesforce Scan",
+          "url": "https://docs.tricentis.com/tosca-2024.2/en-us/content/engines_3.0/salesforce/sfdc_sitescanner.htm"
+        },
+        {
+          "title": "HOST engine: supported emulators",
+          "url": "https://docs.tricentis.com/tosca-2026.1/en-us/content/engines_3.0/host/supported_emulators.htm"
+        },
+        {
+          "title": "Create HOST Modules",
+          "url": "https://docs.tricentis.com/tosca-2026.1/en-us/content/engines_3.0/host/create_host_modules.htm"
+        }
+      ],
+      "questions": "Module scanning (XScan)"
+    },
+    {
       "id": "other-technologies",
       "unit": 7,
       "title": "Desktop, mobile and image-based testing",
+      "definitions": [
+        {
+          "term": "Engine",
+          "text": "The component of Tosca that communicates with one technology, such as web pages, Windows programs or mobile apps."
+        },
+        {
+          "term": "UIA engine",
+          "text": "The engine for Windows desktop controls. It is based on Microsoft UI Automation."
+        },
+        {
+          "term": "Mobile engine",
+          "text": "The engine for native, web and hybrid apps on Android and iOS devices and emulators."
+        },
+        {
+          "term": "Image-based steering",
+          "text": "Finding and operating controls by how they look on the screen, not by their technical properties. Vision AI is the Tricentis technology for this."
+        }
+      ],
       "simple": "An engine is the part of Tosca that knows how to talk to one kind of application. Web pages, Windows programs and mobile apps each have their own engine, and XScan picks the right one.",
       "body": [
         "For web pages the engine works with the page's HTML. Windows programs, and parts of the browser that are not the page itself such as dialogs or the address bar, are reached through the UIA engine, which uses Microsoft's UI Automation.",
@@ -2294,7 +3603,7 @@ window.TOSCA_STUDY = {
         },
         {
           "title": "Steer with Engines 3.0",
-          "url": "https://documentation.tricentis.com/tosca/2320/en/content/tbox/tbox_intro.htm"
+          "url": "https://docs.tricentis.com/tosca-2023.2/en-us/content/tbox/tbox_intro.htm"
         }
       ],
       "questions": "Module scanning (XScan)"
@@ -2303,6 +3612,24 @@ window.TOSCA_STUDY = {
       "id": "requirements-and-risk",
       "unit": 8,
       "title": "Requirements and risk-based testing",
+      "definitions": [
+        {
+          "term": "Requirement",
+          "text": "A statement of what the software must do. In Tosca it is an object in the Requirements section to which TestCases and ExecutionLists are linked."
+        },
+        {
+          "term": "Risk-based testing",
+          "text": "An approach that orders testing by risk, so that the most used and most critical functions are tested first."
+        },
+        {
+          "term": "Weight",
+          "text": "A number that expresses the importance of a requirement. Tosca calculates it from the frequency class and the damage class."
+        },
+        {
+          "term": "Coverage and execution state",
+          "text": "Coverage is the share of a requirement that linked TestCases cover. Execution state is the share that has been executed, and with what result."
+        }
+      ],
       "simple": "Requirements say what the software must do. Risk-based testing means testing the most important and most used parts first, and being able to show how much of each requirement is covered.",
       "body": [
         "In the Requirements section you list the requirements and give each a weight. The weight can be calculated from two estimates: how often the function is used (frequency class) and how bad a failure would be (damage class). The formula is Weight = 2^Frequency class x 2^Damage class.",
@@ -2370,7 +3697,7 @@ window.TOSCA_STUDY = {
       "docs": [
         {
           "title": "Work with Requirements",
-          "url": "https://documentation.tricentis.com/tosca/2320/en/content/requirements/requirements.htm"
+          "url": "https://docs.tricentis.com/tosca-2023.2/en-us/content/requirements/requirements.htm"
         }
       ],
       "questions": "Reporting"
@@ -2379,6 +3706,24 @@ window.TOSCA_STUDY = {
       "id": "multi-user-workspaces",
       "unit": 8,
       "title": "Working in a multi-user workspace",
+      "definitions": [
+        {
+          "term": "Multi-user workspace",
+          "text": "A workspace that is connected to a common repository, so that several users can work on the same project."
+        },
+        {
+          "term": "Common repository",
+          "text": "The central database that stores the project of a team."
+        },
+        {
+          "term": "Checkout and Checkin",
+          "text": "Checkout locks an object so that only you can edit it. Checkin all publishes your changes to the common repository and releases your locks."
+        },
+        {
+          "term": "Update all",
+          "text": "The action that brings the changes other users have checked in into your workspace."
+        }
+      ],
       "simple": "When a team works on the same tests, everyone connects to one shared repository. To change something you check it out, which locks it for the others, and you check it in when you are done.",
       "body": [
         "A multi-user workspace is connected to a common repository in a database. Each tester still has a local workspace, which is synchronised with that repository.",
@@ -2460,6 +3805,20 @@ window.TOSCA_STUDY = {
       "id": "reporting",
       "unit": 8,
       "title": "Results and reporting",
+      "definitions": [
+        {
+          "term": "Execution log",
+          "text": "The stored record of one run of an ExecutionEntry, with the result of every TestStep."
+        },
+        {
+          "term": "Report",
+          "text": "A document generated from execution results, and optionally requirements, that summarises what was tested and with what outcome."
+        },
+        {
+          "term": "DokuSnapper",
+          "text": "A Tosca function that documents a test run by recording the executed steps with screenshots."
+        }
+      ],
       "simple": "Reporting shows what was tested and what happened: which tests passed or failed, with evidence, so others can trust the result.",
       "body": [
         "The source is always the ExecutionList. Each run is stored with a log of every step. For a failed test, open the log, find the first failed step and read its message.",
@@ -2544,10 +3903,1029 @@ window.TOSCA_STUDY = {
         },
         {
           "title": "Work with Requirements",
-          "url": "https://documentation.tricentis.com/tosca/2320/en/content/requirements/requirements.htm"
+          "url": "https://docs.tricentis.com/tosca-2023.2/en-us/content/requirements/requirements.htm"
         }
       ],
       "questions": "Reporting"
+    },
+    {
+      "id": "issues-and-test-management",
+      "unit": 8,
+      "title": "Issues, defects and test management tools",
+      "definitions": [
+        {
+          "term": "Issue",
+          "text": "A record in the Issues section of a problem or a wish found during testing. It can be linked to the execution log in which it was found."
+        },
+        {
+          "term": "Defect",
+          "text": "An issue that describes behaviour of the application which differs from the expected behaviour."
+        },
+        {
+          "term": "FeatureRequest",
+          "text": "An issue that describes desired functionality which is not implemented yet."
+        },
+        {
+          "term": "Test management tool",
+          "text": "Software for planning tests and tracking their execution and results across a project, for example Tricentis qTest."
+        }
+      ],
+      "simple": "When a test fails because the application is wrong, someone has to fix the application. An issue records the problem and links it to the failed run, so the fix can be followed and tested again.",
+      "body": [
+        "Tosca Commander has an Issues section with two types of issue. A Defect describes behaviour that is wrong. A FeatureRequest describes something that is missing and wanted. You create either one by right-clicking the Issues folder.",
+        "The valuable part is the link to the run. Right-click a failed ExecutionEntry or its TestCase log and select Create Defect: the issue is created and linked in one step. An issue that already exists can be dragged onto the log. Later, anyone can see which failures are already known and which are new.",
+        "Many companies manage tests and defects in separate tools. Tricentis qTest is a test management tool that Tosca integrates with: Tosca tests are linked to qTest releases, and the results are visible in both tools. The two do not synchronise by themselves, so after changing tests in Tosca you update the link and check in. Defects are often kept in Jira, which qTest connects to."
+      ],
+      "graphics": [
+        {
+          "type": "flow",
+          "title": "From failure to fix",
+          "steps": [
+            {
+              "label": "Fail",
+              "text": "A run in an ExecutionList fails."
+            },
+            {
+              "label": "Analyse",
+              "text": "Is the application wrong, or the test?"
+            },
+            {
+              "label": "Report",
+              "text": "Create a Defect from the log."
+            },
+            {
+              "label": "Fix",
+              "text": "A developer corrects the application."
+            },
+            {
+              "label": "Retest",
+              "text": "Run again. When it passes, close the defect."
+            }
+          ]
+        }
+      ],
+      "example": {
+        "title": "A failed run and its defect",
+        "intro": "The checkout test fails because a discount code is ignored.",
+        "grid": {
+          "columns": [
+            "Step",
+            "Where",
+            "What you do"
+          ],
+          "rows": [
+            [
+              "1",
+              "ExecutionList",
+              "Open the log of the failed entry and find the first failed step."
+            ],
+            [
+              "2",
+              "TestCase log",
+              "Right-click and select Create Defect."
+            ],
+            [
+              "3",
+              "Issues section",
+              "Name it 'Checkout: total ignores the discount code' and describe how to reproduce it."
+            ],
+            [
+              "4",
+              "After the fix",
+              "Run the entry again. When it passes, close the defect."
+            ]
+          ]
+        }
+      },
+      "points": [
+        "Issue types: Defect and FeatureRequest.",
+        "Create a Defect from the log to link it to the run.",
+        "qTest shows Tosca results next to manual tests.",
+        "Tosca and qTest are updated on request, not automatically."
+      ],
+      "mistake": "Reporting a defect before checking the test. When the failure comes from the test, for example a changed control or bad test data, developers lose time and stop trusting the suite.",
+      "docs": [
+        {
+          "title": "Using issues in ExecutionLists",
+          "url": "https://docs.tricentis.com/tosca-2026.1/en-us/content/tosca_commander/issue_executionlogs.htm"
+        },
+        {
+          "title": "Create and link issues",
+          "url": "https://docs.tricentis.com/tosca-2026.1/en-us/content/tosca_commander/issue_handling.htm"
+        },
+        {
+          "title": "Tosca and qTest integration",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/qtest_integration/qtest_integration_intro.htm"
+        }
+      ],
+      "questions": "Reporting"
+    },
+    {
+      "id": "users-and-groups",
+      "unit": 9,
+      "title": "Users, groups and access rights",
+      "definitions": [
+        {
+          "term": "User and user group",
+          "text": "A user is an account that logs in to a multi-user workspace. A user group collects users so that rights can be assigned to all of them at once."
+        },
+        {
+          "term": "OwningGroupName",
+          "text": "The property of an object that names the user group with write access to it."
+        },
+        {
+          "term": "ViewingGroupName",
+          "text": "The property of an object that names the user group allowed to see it."
+        }
+      ],
+      "simple": "In a shared project, not everyone should be able to change everything. Users are collected in groups. A group can own a folder, which decides who may change it, or be its viewing group, which decides who may see it.",
+      "body": [
+        "User management is the job of an administrator. Check out the project root, open the Usermanagement tab and create users and user groups there. Two groups always exist and cannot be renamed or deleted: Admins and All Users.",
+        "Rights are set on objects through two properties. OwningGroupName names the group that may change the object. ViewingGroupName names the group that may see it. An object can also inherit the setting from its folder. The owning group counts more: if it is All Users, everyone sees the object, whatever the viewing group says.",
+        "Each user also has a level. Expert is the default and allows every operation. Basic is more limited. Companies that use Tosca Server can manage users centrally in Tricentis User Administration and synchronise them with Tosca Commander."
+      ],
+      "graphics": [
+        {
+          "type": "tree",
+          "title": "Who may do what with one folder",
+          "root": {
+            "label": "Folder: Payments",
+            "text": "Rights are read from two properties",
+            "children": [
+              {
+                "label": "OwningGroupName: Payments team",
+                "text": "May change the folder and what is in it."
+              },
+              {
+                "label": "ViewingGroupName: Testers",
+                "text": "May see it."
+              },
+              {
+                "label": "Everyone else",
+                "text": "Does not see the folder."
+              }
+            ]
+          }
+        }
+      ],
+      "example": {
+        "title": "Three folders, three settings",
+        "intro": "How the two properties work together.",
+        "grid": {
+          "columns": [
+            "Folder",
+            "OwningGroupName",
+            "ViewingGroupName",
+            "Effect"
+          ],
+          "rows": [
+            [
+              "Modules / Payments",
+              "Payments team",
+              "Testers",
+              "The Payments team edits. Other testers see the Modules."
+            ],
+            [
+              "TestCases / HR",
+              "HR team",
+              "HR team",
+              "Only the HR team sees the folder."
+            ],
+            [
+              "Shared library",
+              "Admins",
+              "Testers",
+              "Testers see it. Only administrators change it."
+            ]
+          ]
+        }
+      },
+      "points": [
+        "Admins and All Users always exist.",
+        "OwningGroupName: who may change.",
+        "ViewingGroupName: who may see.",
+        "User levels: Expert (default) and Basic."
+      ],
+      "mistake": "Leaving everything owned by All Users. One wrong drag and drop can then damage Modules that hundreds of TestCases depend on.",
+      "docs": [
+        {
+          "title": "Tosca Commander user management",
+          "url": "https://docs.tricentis.com/tosca-2026.1/en-us/content/tosca_commander/user_management.htm"
+        },
+        {
+          "title": "Assign rights to users or user groups",
+          "url": "https://docs.tricentis.com/tosca-2026.1/en-us/content/tosca_commander/user_group_rights.htm"
+        }
+      ],
+      "questions": "Multi-user workspaces"
+    },
+    {
+      "id": "versions-branches-subsets",
+      "unit": 9,
+      "title": "Versions, branches and subsets",
+      "definitions": [
+        {
+          "term": "Revision",
+          "text": "The record of one checkin: a numbered state of the project with the date, the user, an optional comment and the list of changed objects."
+        },
+        {
+          "term": "Branch",
+          "text": "A separate line of development of the same project, created from the common repository. Changes in a branch do not affect the master branch."
+        },
+        {
+          "term": "Subset",
+          "text": "A file with the extension .tsu that contains exported objects and the objects they depend on. It is used to move objects from one project to another."
+        }
+      ],
+      "simple": "Tosca remembers every checkin as a revision, so you can see who changed what and go back. A branch is a separate line of the project for parallel work. A subset is a file for moving objects from one project to another.",
+      "body": [
+        "Versions: every checkin creates a revision with a number, the date, the user and an optional comment. The change history lists the revisions and the objects each one changed. You can revert to an earlier revision, and an administrator can recover an object that was deleted.",
+        "Branches: an administrator right-clicks the project root and selects Create Branch. Work in the branch does not affect the main line, which is called the master branch. A branch is useful when you must keep the tests for an old release of the application while building tests for the next one. From Tosca 2025.1 merging a branch back is switched off by default, and Tricentis has announced plans to remove it, so treat a branch as a snapshot that lives on separately.",
+        "Subsets: right-click an object and select Export Subset to save it as a .tsu file. What the object needs comes with it; a TestCase brings its Modules. When you import, you choose Merge, which keeps the identity of the objects so that existing ones are updated, or Import, which creates new copies. Parameters set on the project root and access rights are not exported."
+      ],
+      "graphics": [
+        {
+          "type": "compare",
+          "title": "Three tools for three jobs",
+          "columns": [
+            {
+              "title": "Revision",
+              "points": [
+                "Created by every checkin.",
+                "Answers: who changed what, and when?",
+                "Lets you go back."
+              ]
+            },
+            {
+              "title": "Branch",
+              "points": [
+                "A separate line of the same project.",
+                "For work on two versions in parallel.",
+                "Created by an administrator."
+              ]
+            },
+            {
+              "title": "Subset (.tsu)",
+              "points": [
+                "A file with exported objects.",
+                "Moves objects between projects.",
+                "Brings referenced Modules along."
+              ]
+            }
+          ]
+        }
+      ],
+      "example": {
+        "title": "Moving the login tests to another project",
+        "intro": "From project A to project B with a subset.",
+        "grid": {
+          "columns": [
+            "Step",
+            "Action",
+            "Result"
+          ],
+          "rows": [
+            [
+              "1",
+              "In project A, right-click the folder Login and select Export Subset",
+              "Login.tsu, including the Modules the TestCases use"
+            ],
+            [
+              "2",
+              "In project B, check out the folder that will receive it",
+              "Needed in a multi-user workspace"
+            ],
+            [
+              "3",
+              "Right-click that folder, select Import Subset and pick the file",
+              "Tosca asks: Merge or Import"
+            ],
+            [
+              "4",
+              "Choose Merge, then Checkin all",
+              "The team sees the TestCases, and a later export updates them instead of duplicating them"
+            ]
+          ]
+        }
+      },
+      "points": [
+        "Every checkin is a revision you can return to.",
+        "A branch is a separate line; merging back is being retired.",
+        "A subset is a .tsu file with objects and what they need.",
+        "Merge keeps identities; Import makes copies."
+      ],
+      "mistake": "Checking in without a comment. Six months later the history shows forty revisions and no hint which one changed the login Module.",
+      "docs": [
+        {
+          "title": "Handle object versioning",
+          "url": "https://docs.tricentis.com/tosca-2023.1/en-us/content/tosca_commander/object_versioning.htm"
+        },
+        {
+          "title": "Create and manage branches",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/tosca_commander/creating_branches.htm"
+        },
+        {
+          "title": "Import and export subsets",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/tosca_commander/import_export_subsets.htm"
+        }
+      ],
+      "questions": "Multi-user workspaces"
+    },
+    {
+      "id": "tql-and-virtual-folders",
+      "unit": 9,
+      "title": "Searching with TQL and virtual folders",
+      "definitions": [
+        {
+          "term": "TQL",
+          "text": "Tosca Query Language: a formal query language for finding objects in a project by their type, their properties and their relations to other objects."
+        },
+        {
+          "term": "Virtual folder",
+          "text": "A folder that does not contain objects itself. It displays the objects found by the TQL query stored in its Query property."
+        }
+      ],
+      "simple": "TQL, the Tosca Query Language, is a way to ask the project exact questions, such as 'which TestCases are not finished?'. A virtual folder saves such a question and always shows the current answer.",
+      "body": [
+        "A query starts at the object you are on and follows an arrow. The arrow -> takes one step, and => repeats the step all the way down. SUBPARTS goes to the objects inside, SUPERPART to the object above. So =>SUBPARTS means: everything below here, at any depth.",
+        "After a colon you name the type of object you want, and in square brackets a condition on a property. == means equals, != means does not equal, and =? means contains. The query =>SUBPARTS:TestCase[Name=?\"Login\"] finds every TestCase below the current folder whose name contains Login.",
+        "The TQL search is part of the normal search: select TQL Search there. After a query has run, you can save it as a virtual folder. The folder keeps the query in its Query property and shows the matching objects, and nothing else. The query is evaluated from the place where the virtual folder sits, so its position matters."
+      ],
+      "graphics": [
+        {
+          "type": "flow",
+          "title": "Reading a query piece by piece",
+          "steps": [
+            {
+              "label": "=>",
+              "text": "Search at every level below the current object."
+            },
+            {
+              "label": "SUBPARTS",
+              "text": "Follow the link to the contained objects."
+            },
+            {
+              "label": ":TestCase",
+              "text": "Keep only objects of the type TestCase."
+            },
+            {
+              "label": "[Name==\"Test001\"]",
+              "text": "Keep only those with this name."
+            }
+          ]
+        }
+      ],
+      "example": {
+        "title": "Four useful queries",
+        "intro": "Typed into the TQL search, or stored in the Query property of a virtual folder.",
+        "code": [
+          {
+            "label": "The TestCase named Test001, anywhere below this folder",
+            "code": "=>SUBPARTS:TestCase[Name==\"Test001\"]"
+          },
+          {
+            "label": "All TestCases whose name contains Automobile",
+            "code": "=>SUBPARTS:TestCase[Name=?\"Automobile\"]"
+          },
+          {
+            "label": "All TestCases that are still PLANNED",
+            "code": "=>SUBPARTS:TestCase[TestCaseWorkState==\"PLANNED\"]"
+          },
+          {
+            "label": "Virtual folder: unfinished TestCases in the folder it sits in",
+            "code": "->SUPERPART=>SUBPARTS:TestCase[TestCaseWorkState!=\"COMPLETED\"]"
+          }
+        ],
+        "outcome": "The last query first steps up to the parent folder, then searches everything below it."
+      },
+      "points": [
+        "-> is one step, => is every level.",
+        "SUBPARTS goes down, SUPERPART goes up.",
+        ":Type and [Property==\"value\"] filter the result.",
+        "A virtual folder is a saved query."
+      ],
+      "mistake": "Using -> when you mean =>. A single arrow looks only one level down, so nothing in the subfolders is found and the objects seem not to exist.",
+      "docs": [
+        {
+          "title": "TQL - Step by step",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/tosca_commander/tql_step_by_step.htm"
+        },
+        {
+          "title": "TQL Search",
+          "url": "https://docs.tricentis.com/tosca-2026.1/en-us/content/tosca_commander/tql_search.htm"
+        },
+        {
+          "title": "Example TQL solutions",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/tosca_commander/tql_examples.htm"
+        }
+      ],
+      "questions": null
+    },
+    {
+      "id": "tc-shell",
+      "unit": 9,
+      "title": "TC-Shell: Tosca from the command line",
+      "definitions": [
+        {
+          "term": "TC-Shell",
+          "text": "The command-line interface of Tosca Commander, through which a workspace is operated with typed commands."
+        },
+        {
+          "term": "Interactive mode",
+          "text": "The mode in which you enter one command at a time and see its result."
+        },
+        {
+          "term": "Script mode",
+          "text": "The mode in which TC-Shell executes the commands of a script file, usually with the extension .tcs, without user input."
+        }
+      ],
+      "simple": "TC-Shell lets you control Tosca Commander with typed commands instead of clicks. Put the commands in a file, and Tosca can do routine work, such as a nightly update and run, with nobody at the keyboard.",
+      "body": [
+        "TC-Shell has two modes. In interactive mode you type one command at a time and see the answer. In script mode it reads the commands from a text file, usually ending in .tcs, works through them from top to bottom, then closes the workspace and exits. Lines that start with // are comments.",
+        "The commands mirror what you do in the window. updateall and checkinall do the same as Update all and Checkin all. JumpToNode moves to an object by its path. task lists the actions available on the current object, or runs one of them. For can repeat a task for every object that a TQL query finds.",
+        "Typical uses are a run started by the Windows Task Scheduler, housekeeping such as deleting old execution logs, and backups of the repository. Tricentis recommends that only administrators use TC-Shell, because a script can change a lot very quickly. Pipelines normally use the clients from the CI/CD lesson instead."
+      ],
+      "graphics": [
+        {
+          "type": "compare",
+          "title": "Two modes",
+          "columns": [
+            {
+              "title": "Interactive mode",
+              "points": [
+                "You type each command.",
+                "You see the result at once.",
+                "Good for trying commands out."
+              ]
+            },
+            {
+              "title": "Script mode",
+              "points": [
+                "Commands come from a .tcs file.",
+                "Nobody can step in while it runs.",
+                "Good for scheduled, unattended work."
+              ]
+            }
+          ]
+        }
+      ],
+      "example": {
+        "title": "A nightly script",
+        "intro": "The command line starts TC-Shell with a workspace, a login and a script file. The path and task names in the script are examples: type task in interactive mode to see the exact names for your objects.",
+        "code": [
+          {
+            "label": "Start in script mode (the empty quotes mean: no password)",
+            "code": "TCShell -workspace \"d:\\\\Workspace\\\\WS1\\\\WS1.tws\" -login \"Admin\" \"\" \"d:\\\\Workspace\\\\WS1\\\\script.tcs\""
+          },
+          {
+            "label": "script.tcs: update, run an ExecutionList, publish the results",
+            "code": "// nightly regression\nupdateall\nJumpToNode \"/Execution/ExecutionLists/Nightly regression\"\ntask \"Run\"\ncheckinall"
+          }
+        ],
+        "outcome": "When the last command has finished, the workspace closes and TC-Shell exits by itself."
+      },
+      "points": [
+        "Interactive mode for trying, script mode for automation.",
+        "Scripts are text files, usually .tcs.",
+        "updateall, checkinall, JumpToNode and task are the core commands.",
+        "Meant for administrators."
+      ],
+      "mistake": "Trying a new script on the team's main workspace. Test it on a copy first, because a wrong path followed by checkinall publishes the damage to everyone.",
+      "docs": [
+        {
+          "title": "Steer Tosca Commander via Command Line (TCShell.exe)",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/tosca_commander/tcshell.htm"
+        },
+        {
+          "title": "Working in script mode",
+          "url": "https://docs.tricentis.com/tosca-2026.1/en-us/content/tosca_commander/script_mode.htm"
+        },
+        {
+          "title": "Use TC-Shell commands",
+          "url": "https://docs.tricentis.com/tosca-2026.1/en-us/content/tosca_commander/tcshell_commands.htm"
+        }
+      ],
+      "questions": "CI/CD integration"
+    },
+    {
+      "id": "naming-and-structure",
+      "unit": 9,
+      "title": "Naming conventions and project structure",
+      "definitions": [
+        {
+          "term": "Naming convention",
+          "text": "An agreed set of rules for naming objects, so that the purpose and the place of an object are clear from its name."
+        },
+        {
+          "term": "Project structure",
+          "text": "The agreed arrangement of folders in each section of the workspace, for example by application, area and business process."
+        }
+      ],
+      "simple": "A project is easy to work in when everyone can guess from a name where a thing is and what it does. A few simple rules for names and folders give you that.",
+      "body": [
+        "Modules: Tosca names a Module after the title of the window. Rename it when several screens share a title, or when the title contains something specific such as an order number. Do this while you scan, not afterwards. ModuleAttributes are named after the label of the control; rename the ones that have no good label.",
+        "TestCases need a unique name that states their purpose, with the application name in front if you test several applications. A TestStep should say what happens at this point: 'Log in as customer' tells more than the Module name 'Login page'. Inside a larger TestCase, group the steps into the folders Precondition, Process and Postcondition.",
+        "Folders: build the Modules tree like the application: first the application, then the area, then the screen or process. Build the TestCases tree by business process, or copy the structure of the Requirements section if you use it. Keep folder names short, and avoid categories that overlap, so that nobody has to guess between two places."
+      ],
+      "graphics": [
+        {
+          "type": "tree",
+          "title": "A Modules folder that mirrors the application",
+          "root": {
+            "label": "WebShop (WS)",
+            "text": "Application name and short form",
+            "children": [
+              {
+                "label": "Account",
+                "text": "Login, registration, profile"
+              },
+              {
+                "label": "Catalogue",
+                "text": "Search, product page"
+              },
+              {
+                "label": "Checkout",
+                "text": "Cart, payment, confirmation"
+              }
+            ]
+          }
+        }
+      ],
+      "example": {
+        "title": "Names before and after",
+        "intro": "The same four objects, named carelessly and named well.",
+        "grid": {
+          "columns": [
+            "Object",
+            "Hard to work with",
+            "Better"
+          ],
+          "rows": [
+            [
+              "Module",
+              "Home (2)",
+              "WS | Checkout | Payment form"
+            ],
+            [
+              "ModuleAttribute",
+              "textbox_17",
+              "Card holder name"
+            ],
+            [
+              "TestCase",
+              "Test1_new_final",
+              "WS Checkout: pay by card with a discount code"
+            ],
+            [
+              "TestStep",
+              "Login page",
+              "Log in as registered customer"
+            ]
+          ]
+        }
+      },
+      "points": [
+        "Rename Modules while scanning.",
+        "TestCase names state the purpose; TestStep names state the action.",
+        "Folders mirror the application or the business process.",
+        "Precondition, Process, Postcondition inside a TestCase."
+      ],
+      "mistake": "Agreeing on rules when the project already has a thousand objects. Renaming later is possible, but nobody finds the time. Decide in the first week.",
+      "docs": [
+        {
+          "title": "Best practices: overview",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/best_practices/best_practices_overview.htm"
+        },
+        {
+          "title": "Best practices: project folders",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/best_practices/project_folders.htm"
+        },
+        {
+          "title": "Best practices: TestCase structure",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/best_practices/testcases_structure.htm"
+        }
+      ],
+      "questions": "TestCase design"
+    },
+    {
+      "id": "extending-tosca",
+      "unit": 10,
+      "title": "Extending Tosca with code",
+      "definitions": [
+        {
+          "term": "TBox API",
+          "text": "The programming interface of Tosca's automation engine. Developers use it to add functions to Tosca in C#."
+        },
+        {
+          "term": "Special Execution Task (SET)",
+          "text": "A C# class that implements one action and is linked to a Module, so that testers can use the action like any standard module."
+        },
+        {
+          "term": "TC API",
+          "text": "The programming interface of Tosca Commander. Programs use it to read and change the objects of a workspace."
+        }
+      ],
+      "simple": "Tosca is used without programming, but it can be extended with it. When no standard module does what you need, a developer can write a small piece of C# that then appears in Tosca as a normal Module.",
+      "body": [
+        "The TBox API is the programming interface of Tosca's automation engine. The simplest extension is a Special Execution Task, SET for short: a C# class that carries out one action. Ready-made modules such as TBox Start Program are built this way.",
+        "A SET is connected to a Module by two configuration parameters: Engine names your library, and SpecialExecutionTask names the task. Each ModuleAttribute that the code should receive is marked as a parameter. Testers then use the Module like any other, with values and ActionModes. After a new library has been copied to the machine, start a new instance of Tosca, because libraries are loaded only at start-up.",
+        "The same API can change how Tosca steers a control, which helps with self-built controls that the standard engines do not operate well. For work on the project itself, and not on the application under test, there is the TC API: it lets a program read and change the objects of a workspace."
+      ],
+      "graphics": [
+        {
+          "type": "flow",
+          "title": "From a need to a Module",
+          "steps": [
+            {
+              "label": "Need",
+              "text": "No standard module does the job."
+            },
+            {
+              "label": "Code",
+              "text": "A developer writes a C# class, the SET."
+            },
+            {
+              "label": "Library",
+              "text": "The built DLL is copied to the Tosca machines."
+            },
+            {
+              "label": "Module",
+              "text": "A Module points to it with Engine and SpecialExecutionTask."
+            },
+            {
+              "label": "TestCase",
+              "text": "Testers use it like any other Module."
+            }
+          ]
+        }
+      ],
+      "example": {
+        "title": "A module that reads a text file",
+        "intro": "This follows the example in the TBox API manual: a task named MyFileReader with the parameters Path and Content.",
+        "grid": {
+          "columns": [
+            "Where",
+            "Name",
+            "Value"
+          ],
+          "rows": [
+            [
+              "Module, configuration",
+              "Engine",
+              "MyNewEngine"
+            ],
+            [
+              "Module, configuration",
+              "SpecialExecutionTask",
+              "MyFileReader"
+            ],
+            [
+              "ModuleAttribute Path, configuration",
+              "Parameter",
+              "true"
+            ],
+            [
+              "ModuleAttribute Content, configuration",
+              "Parameter",
+              "true"
+            ]
+          ]
+        },
+        "code": [
+          {
+            "label": "Outline of the C# class (the manual has the full code)",
+            "code": "[SpecialExecutionTaskName(\"MyFileReader\")]\npublic class MyFileReader : SpecialExecutionTaskEnhanced\n{\n    // read the parameters Path and Content,\n    // write the file for ActionMode Input,\n    // or hand the file's text to Tosca for Verify and Buffer\n}"
+          }
+        ],
+        "outcome": "In a TestCase, Path gets the file name with ActionMode Input, and Content can be entered, verified or buffered."
+      },
+      "points": [
+        "The TBox API extends the automation engine with C#.",
+        "A Special Execution Task is one action in code.",
+        "Engine and SpecialExecutionTask connect a Module to it.",
+        "The TC API works on the objects of a workspace."
+      ],
+      "mistake": "Writing code for something a standard module already does. Search the Standard subset first. Custom code has to be maintained, and installed on every machine that runs the tests.",
+      "docs": [
+        {
+          "title": "TBox API documentation",
+          "url": "https://documentation.tricentis.com/devcorner/2024.1/tboxapi/content/general/landing_page.htm"
+        },
+        {
+          "title": "Implement a special execution task",
+          "url": "https://documentation.tricentis.com/devcorner/2024.1/tboxapi/content/general/implement_set.htm"
+        }
+      ],
+      "questions": null
+    },
+    {
+      "id": "data-integrity",
+      "unit": 10,
+      "title": "Data integrity testing",
+      "definitions": [
+        {
+          "term": "Data integrity testing",
+          "text": "Testing that data is complete and correct after it has been stored, moved or transformed, by checking the data itself in files and databases."
+        },
+        {
+          "term": "Pre-screening",
+          "text": "A test that verifies a file before it is loaded into another system."
+        },
+        {
+          "term": "Vital check",
+          "text": "A test that verifies data which was copied or moved from one layer of a system to the next."
+        },
+        {
+          "term": "Reconciliation",
+          "text": "A complete row by row comparison of two datasets in two separate systems."
+        },
+        {
+          "term": "Row Key",
+          "text": "The column, or combination of columns, that identifies a row uniquely. Source and target rows are matched by it."
+        }
+      ],
+      "simple": "Data integrity testing checks data, not screens. When data is copied from one system to another, for example into a data warehouse, it confirms that nothing was lost or changed on the way.",
+      "body": [
+        "Companies move large amounts of data between systems, often every night. A screen test cannot check millions of rows. Tricentis Data Integrity, which is part of Tosca, compares the data itself, directly in files and databases.",
+        "There are three main kinds of test. Pre-screening verifies a file before it is loaded into another system. Vital checks verify data that was copied or moved from one layer to the next. Reconciliation is the most thorough: a complete row by row comparison of two datasets in two separate systems.",
+        "For a row by row comparison you name a Row Key: the column or columns that identify a row, such as the customer number. Tosca takes each source row, looks for the target row with the same key and compares the remaining columns. It reports rows that are missing, and rows whose key matches but whose data differs. Sorting both sides in the same way makes the comparison faster and saves memory."
+      ],
+      "graphics": [
+        {
+          "type": "flow",
+          "title": "Three kinds of test, from first look to full comparison",
+          "steps": [
+            {
+              "label": "Pre-screening",
+              "text": "Is the incoming file fit to be loaded?"
+            },
+            {
+              "label": "Vital checks",
+              "text": "Did the data arrive in the next layer?"
+            },
+            {
+              "label": "Reconciliation",
+              "text": "Is every row the same in source and target?"
+            }
+          ]
+        }
+      ],
+      "example": {
+        "title": "Reconciliation with the Row Key CustomerNo",
+        "intro": "Three customers in the source system, compared with the data warehouse.",
+        "grid": {
+          "columns": [
+            "CustomerNo",
+            "Source: City",
+            "Target: City",
+            "Result"
+          ],
+          "rows": [
+            [
+              "1001",
+              "Berlin",
+              "Berlin",
+              "Match"
+            ],
+            [
+              "1002",
+              "Vienna",
+              "Wien",
+              "Error: the key matches, the data differs"
+            ],
+            [
+              "1003",
+              "Paris",
+              "(no row)",
+              "Error: missing in the target"
+            ]
+          ]
+        },
+        "outcome": "Two of the three rows are reported. The setting Max Errors stops the comparison after a number of errors, 100 by default."
+      },
+      "points": [
+        "Data integrity tests compare data directly.",
+        "Pre-screening, vital checks, reconciliation.",
+        "The Row Key pairs source rows with target rows.",
+        "Sort both sides the same way for speed."
+      ],
+      "mistake": "Typing the Row Key column name slightly differently from the table. It must match exactly, including capital letters and spaces.",
+      "docs": [
+        {
+          "title": "Data Integrity Reconciliation testing",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/data_integrity/di_reconciliation.htm"
+        },
+        {
+          "title": "Use Data Integrity Modules",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/data_integrity/di_modules.htm"
+        },
+        {
+          "title": "Create tests with Wizards",
+          "url": "https://docs.tricentis.com/tosca-2023.2/en-us/content/data_integrity/di_wizards.htm"
+        }
+      ],
+      "questions": null
+    },
+    {
+      "id": "performance-with-neoload",
+      "unit": 10,
+      "title": "Performance testing with NeoLoad",
+      "definitions": [
+        {
+          "term": "Performance testing",
+          "text": "Testing how fast and how reliably an application responds under a defined load."
+        },
+        {
+          "term": "Load",
+          "text": "The number of users or requests that an application has to handle at the same time. A load test simulates it with virtual users."
+        },
+        {
+          "term": "NeoLoad",
+          "text": "The performance testing tool from Tricentis."
+        },
+        {
+          "term": "User Path",
+          "text": "In NeoLoad, the sequence of requests that one virtual user sends."
+        }
+      ],
+      "simple": "A functional test asks 'does it work?'. A performance test asks 'does it still work, and fast enough, when a thousand people use it at once?'. Tosca answers the first question, and Tricentis NeoLoad answers the second.",
+      "body": [
+        "Tosca runs a test as one user. That proves the function is correct, but says nothing about speed under load. NeoLoad simulates many virtual users at the same time and measures response times and errors.",
+        "A NeoLoad test is built from User Paths: the sequence of requests that one user sends. You do not have to record them again from nothing. The NeoLoad Add-on for Tosca converts a Tosca TestCase into a NeoLoad User Path. The NeoLoad manual describes this for Web, API and SAP GUI TestCases.",
+        "In Tosca you right-click an execution of the TestCase and choose the transfer from the NeoLoad Add-on menu. NeoLoad records the traffic while the test runs from start to end. When the application changes, you repair the Tosca TestCase and update the User Path from it, so the functional test and the performance test stay in step."
+      ],
+      "graphics": [
+        {
+          "type": "compare",
+          "title": "Two questions, two tools",
+          "columns": [
+            {
+              "title": "Functional test (Tosca)",
+              "points": [
+                "One user.",
+                "Checks that the result is correct.",
+                "Ends with passed or failed."
+              ]
+            },
+            {
+              "title": "Performance test (NeoLoad)",
+              "points": [
+                "Many virtual users at once.",
+                "Measures response times and errors under load.",
+                "Ends with numbers to compare with a target."
+              ]
+            }
+          ]
+        }
+      ],
+      "example": {
+        "title": "One scenario, tested twice",
+        "intro": "The checkout of a web shop.",
+        "grid": {
+          "columns": [
+            "",
+            "In Tosca",
+            "In NeoLoad"
+          ],
+          "rows": [
+            [
+              "Scenario",
+              "Search a product and pay",
+              "The same steps, as a User Path"
+            ],
+            [
+              "Users",
+              "1",
+              "500 at the same time"
+            ],
+            [
+              "What is checked",
+              "The order confirmation is shown",
+              "Response time and error rate"
+            ],
+            [
+              "A typical finding",
+              "The total is wrong",
+              "Payment takes six seconds at 500 users"
+            ]
+          ]
+        }
+      },
+      "points": [
+        "Tosca checks correctness; NeoLoad checks behaviour under load.",
+        "A User Path is one user's sequence of requests.",
+        "The NeoLoad Add-on converts a Tosca TestCase into a User Path.",
+        "Repair once in Tosca, then update the User Path."
+      ],
+      "mistake": "Running a load test against a shared test environment without telling anyone. Other teams' tests slow down or fail, and nobody knows why.",
+      "docs": [
+        {
+          "title": "Convert a Tosca Web or API script to a NeoLoad User Path",
+          "url": "https://documentation.tricentis.com/neoload/8.2/en/WebHelp/41108.htm"
+        }
+      ],
+      "questions": null
+    },
+    {
+      "id": "certifications",
+      "unit": 10,
+      "title": "Certifications and your learning path",
+      "definitions": [
+        {
+          "term": "Certification",
+          "text": "A credential from Tricentis, earned by passing an exam, which confirms a certain level of knowledge of Tosca."
+        },
+        {
+          "term": "Tricentis Academy",
+          "text": "The online learning platform of Tricentis, with the courses and exams for the Tosca certifications."
+        }
+      ],
+      "simple": "The Tricentis Academy offers online courses and certification exams for Tosca. A certificate shows an employer that you know the tool, and the courses make a good plan to study by.",
+      "body": [
+        "The usual start is the two Fundamentals courses, still widely known by their old codes. AS1, formerly Automation Specialist Level 1, is about automating the tests of a web application. AS2 continues with test automation that uses centralised test data.",
+        "The Deep Dive courses go further. AE1 covers automating beyond web applications. The API course covers API TestCases. TDS1 and TDS2 are about test design: structuring test cases and test data, and managing data that changes its state.",
+        "Course names, exams and prices change, so check the Tricentis Academy for the current list. For interviews, a certificate helps you to be invited. What gets you the job is explaining how you solved real problems, and the Interview preparation page of this site is there for that."
+      ],
+      "graphics": [
+        {
+          "type": "flow",
+          "title": "A sensible order",
+          "steps": [
+            {
+              "label": "AS1",
+              "text": "Web automation: Modules, TestCases, execution."
+            },
+            {
+              "label": "AS2",
+              "text": "Central test data."
+            },
+            {
+              "label": "TDS1 and TDS2",
+              "text": "Test design and stateful data."
+            },
+            {
+              "label": "API",
+              "text": "API TestCases."
+            },
+            {
+              "label": "AE1",
+              "text": "Beyond web applications."
+            }
+          ]
+        }
+      ],
+      "example": {
+        "title": "Which units of this site prepare you",
+        "intro": "A rough map from the courses to the syllabus.",
+        "grid": {
+          "columns": [
+            "Course",
+            "Topic",
+            "Units here"
+          ],
+          "rows": [
+            [
+              "AS1",
+              "Automating web application testing",
+              "Units 1, 2, 3, 5 and 6"
+            ],
+            [
+              "AS2",
+              "Centralised test data",
+              "Unit 4"
+            ],
+            [
+              "TDS1, TDS2",
+              "Test design and stateful data",
+              "Unit 4"
+            ],
+            [
+              "API",
+              "Automating API test cases",
+              "Unit 7"
+            ],
+            [
+              "AE1",
+              "Automating beyond web applications",
+              "Units 7 and 10"
+            ]
+          ]
+        }
+      },
+      "points": [
+        "Start with AS1, then AS2.",
+        "Deep Dives: AE1, API, TDS1, TDS2.",
+        "Check the Academy for current names and exams.",
+        "Practice counts more than the certificate."
+      ],
+      "mistake": "Collecting certificates without practising. Build a small project of your own, for example ten TestCases for a demo web shop, and you will remember far more.",
+      "docs": [
+        {
+          "title": "Tricentis Academy",
+          "url": "https://academy.tricentis.com/"
+        }
+      ],
+      "questions": null
     }
   ],
   "cheatsheet": [
@@ -2591,7 +4969,7 @@ window.TOSCA_STUDY = {
         },
         {
           "title": "Reusable TestStepBlocks",
-          "url": "https://documentation.tricentis.com/tosca/2410/en/content/tosca_commander/reusable_teststepblocks.htm"
+          "url": "https://docs.tricentis.com/tosca-2024.1/en-us/content/tosca_commander/reusable_teststepblocks.htm"
         },
         {
           "title": "TestCase templates",
@@ -2956,7 +5334,7 @@ window.TOSCA_STUDY = {
         },
         {
           "title": "Default properties for Modules",
-          "url": "https://documentation.tricentis.com/tosca/2320/en/content/tosca_commander/modules_properties.htm"
+          "url": "https://docs.tricentis.com/tosca-2023.2/en-us/content/tosca_commander/modules_properties.htm"
         }
       ],
       "items": [
@@ -2979,6 +5357,92 @@ window.TOSCA_STUDY = {
         [
           "Approved;Rejected;Pending",
           "ValueRange: the values offered in the TestStep."
+        ]
+      ]
+    },
+    {
+      "title": "TQL searches",
+      "docs": [
+        {
+          "title": "TQL - Step by step",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/tosca_commander/tql_step_by_step.htm"
+        },
+        {
+          "title": "Operators and Functions",
+          "url": "https://docs.tricentis.com/tosca-2025.1/en-us/content/tosca_commander/tql_operators.htm"
+        }
+      ],
+      "items": [
+        [
+          "->SUBPARTS",
+          "The objects directly inside the current object (one level)."
+        ],
+        [
+          "=>SUBPARTS",
+          "All objects below the current object, at every level."
+        ],
+        [
+          "=>SUBPARTS:TestCase",
+          "Only objects of the type TestCase."
+        ],
+        [
+          "=>SUBPARTS:TestCase[Name==\"Test001\"]",
+          "TestCases with exactly this name."
+        ],
+        [
+          "=>SUBPARTS:TestCase[Name=?\"Login\"]",
+          "TestCases whose name contains Login."
+        ],
+        [
+          "=>SUBPARTS:TestCase[TestCaseWorkState!=\"COMPLETED\"]",
+          "TestCases that are not finished."
+        ],
+        [
+          "->SUPERPART",
+          "One step up, to the object that contains the current one."
+        ]
+      ]
+    },
+    {
+      "title": "TC-Shell",
+      "docs": [
+        {
+          "title": "Use TC-Shell commands",
+          "url": "https://docs.tricentis.com/tosca-2026.1/en-us/content/tosca_commander/tcshell_commands.htm"
+        },
+        {
+          "title": "Working in script mode",
+          "url": "https://docs.tricentis.com/tosca-2026.1/en-us/content/tosca_commander/script_mode.htm"
+        }
+      ],
+      "items": [
+        [
+          "updateall",
+          "Bring the workspace up to date with the common repository."
+        ],
+        [
+          "checkinall",
+          "Check in everything you have checked out."
+        ],
+        [
+          "JumpToNode \"/path/to/object\"",
+          "Make the object at this path the current object."
+        ],
+        [
+          "task",
+          "List the tasks of the current object. With a name or number: run that task."
+        ],
+        [
+          "save",
+          "Save all changes."
+        ],
+        [
+          "// comment",
+          "A comment line in a script file."
+        ],
+        [
+          "help",
+          "List the possible commands."
         ]
       ]
     }
@@ -3007,6 +5471,12 @@ window.TOSCA_STUDY = {
       "simple": "The tool where requests are built, sent and turned into Modules.",
       "detail": "It can also import interface descriptions, so requests do not have to be typed by hand.",
       "topic": "API testing"
+    },
+    {
+      "term": "Branch",
+      "simple": "A separate line of the same project for parallel work.",
+      "detail": "Created by an administrator from the project root. The main line is the master branch. From Tosca 2025.1 merging branches is switched off by default.",
+      "topic": "Multi-user workspaces"
     },
     {
       "term": "Buffer",
@@ -3039,6 +5509,12 @@ window.TOSCA_STUDY = {
       "topic": "API testing"
     },
     {
+      "term": "Characteristic",
+      "simple": "A label that routes a playlist to matching agents.",
+      "detail": "Example: Agent-type=Cloud-agent sends a playlist to cloud agents only.",
+      "topic": "Execution lists and DEX"
+    },
+    {
       "term": "Checkin All",
       "simple": "Publishing your changes and releasing your locks.",
       "detail": "Do it several times a day and before you leave.",
@@ -3057,10 +5533,22 @@ window.TOSCA_STUDY = {
       "topic": "Recovery and cleanup scenarios"
     },
     {
+      "term": "Cloud agent",
+      "simple": "A machine hosted by Tricentis that runs your tests.",
+      "detail": "It has only standard Windows applications and web browsers, so it suits web tests. Tests that need other software run on a team agent.",
+      "topic": "Execution lists and DEX"
+    },
+    {
       "term": "Common repository",
       "simple": "The shared database that holds the team's project.",
       "detail": "You connect to it with a connection string when you create the workspace.",
       "topic": "Multi-user workspaces"
+    },
+    {
+      "term": "Configuration",
+      "simple": "A bundle of Test Configuration Parameters kept in one place.",
+      "detail": "You assign the configuration to an object instead of typing the same parameters again, for example one configuration per browser or environment.",
+      "topic": "Buffers and parameterisation"
     },
     {
       "term": "Constraint",
@@ -3087,10 +5575,34 @@ window.TOSCA_STUDY = {
       "topic": "Module scanning (XScan)"
     },
     {
+      "term": "Cross-browser run",
+      "simple": "The same TestCase executed in several browsers.",
+      "detail": "Use one ExecutionList per browser and set the parameter Browser on each list. The TestCase itself is not copied.",
+      "topic": "Execution lists and DEX"
+    },
+    {
+      "term": "DataType",
+      "simple": "How Tosca reads a value: as text, number, date, true/false or password.",
+      "detail": "The DataTypes are String (default), Numeric, Date, Boolean and Password. Password hides the value and stores it encrypted.",
+      "topic": "TestCase design"
+    },
+    {
       "term": "Date expressions",
       "simple": "Expressions that produce dates relative to today.",
       "detail": "{DATE[base][offset][format]}, for example {DATE[][+1d][dd/MM/yyyy]} for tomorrow. Units are d (days), M (months) and y (years). {DATETIME} gives a time stamp.",
       "topic": "Buffers and parameterisation"
+    },
+    {
+      "term": "DB Expert Module",
+      "simple": "One module that opens a database connection, runs SQL and closes the connection.",
+      "detail": "It replaces the three separate database modules when a single statement is enough.",
+      "topic": "TBox"
+    },
+    {
+      "term": "Defect and FeatureRequest",
+      "simple": "The two types of issue in the Issues section.",
+      "detail": "A Defect is behaviour that is wrong. A FeatureRequest is something missing and wanted. Creating one from a TestCase log links it to that run.",
+      "topic": "Reporting"
     },
     {
       "term": "Dialog failure",
@@ -3109,6 +5621,12 @@ window.TOSCA_STUDY = {
       "simple": "A feature that documents a whole run with screenshots.",
       "detail": "Useful as audit evidence. It slows execution, so enable it only where evidence is needed.",
       "topic": "Reporting"
+    },
+    {
+      "term": "Elastic Execution Grid",
+      "simple": "The test execution service of Tosca Cloud.",
+      "detail": "It does the job of Distributed Execution, hosted by Tricentis. Runs go to personal, team or cloud agents.",
+      "topic": "Execution lists and DEX"
     },
     {
       "term": "Embedded control",
@@ -3159,6 +5677,18 @@ window.TOSCA_STUDY = {
       "topic": "Test data (TDM/TDS)"
     },
     {
+      "term": "Floating licence",
+      "simple": "A licence taken from a shared pool while Tosca is in use.",
+      "detail": "The pool is hosted by Tricentis (cloud licensing) or on a Tricentis License Server in your own network (on-premises licensing). The licence goes back to the pool when the machine is done.",
+      "topic": "Getting started"
+    },
+    {
+      "term": "HOST engine",
+      "simple": "The engine for mainframe text screens.",
+      "detail": "It steers TN3270 and TN5250 sessions in a terminal emulator. Modules are created with Scan > Remote Terminal.",
+      "topic": "Module scanning (XScan)"
+    },
+    {
       "term": "Identification methods",
       "simple": "The ways Tosca can recognise a control.",
       "detail": "By properties (preferred), by anchor, by image, or by index. A wildcard (*) or a regular expression makes a property tolerant of values that change.",
@@ -3207,10 +5737,46 @@ window.TOSCA_STUDY = {
       "topic": "Module scanning (XScan)"
     },
     {
+      "term": "NeoLoad",
+      "simple": "The performance testing tool from Tricentis.",
+      "detail": "It simulates many virtual users and measures response times. The NeoLoad Add-on for Tosca converts a TestCase into a User Path.",
+      "topic": "Advanced topics"
+    },
+    {
+      "term": "Node-locked licence",
+      "simple": "A licence bound to one machine.",
+      "detail": "Nobody else can use it, and the machine never has to wait for a free licence.",
+      "topic": "Getting started"
+    },
+    {
       "term": "OnDialogFailure and OnVerificationFailure",
       "simple": "Settings that say what happens after each kind of failure.",
       "detail": "As Test Configuration Parameters they can differ per folder or TestCase. Values: Continue, Execute next TestCase, Halt execution, Recover.",
       "topic": "Recovery and cleanup scenarios"
+    },
+    {
+      "term": "OSV Monitor",
+      "simple": "The place to start, stop and watch virtual services.",
+      "detail": "It manages OSV Environments and Scenarios and contains the recorder for real traffic.",
+      "topic": "API testing"
+    },
+    {
+      "term": "OSV Scenario",
+      "simple": "The description of a virtual service: which request gets which response.",
+      "detail": "Built in Tosca Commander like a TestCase, from API Scan messages, from an API TestCase, or from recorded traffic. It runs in an OSV Environment.",
+      "topic": "API testing"
+    },
+    {
+      "term": "OwningGroupName and ViewingGroupName",
+      "simple": "Two properties that set who may change an object and who may see it.",
+      "detail": "The owning group has write access and counts more than the viewing group. An object can inherit both from its folder.",
+      "topic": "Multi-user workspaces"
+    },
+    {
+      "term": "PDF 1:1 Compare",
+      "simple": "A module that compares a PDF with a reference PDF.",
+      "detail": "Accuracy is the lowest similarity in percent that still passes. Areas, texts and pages that may differ can be excluded.",
+      "topic": "TBox"
     },
     {
       "term": "Pipeline",
@@ -3219,16 +5785,46 @@ window.TOSCA_STUDY = {
       "topic": "CI/CD integration"
     },
     {
+      "term": "Playlist",
+      "simple": "A collection of tests to run in Tosca Cloud.",
+      "detail": "Characteristics on the playlist decide which agents may run it.",
+      "topic": "Execution lists and DEX"
+    },
+    {
+      "term": "qTest",
+      "simple": "The test management tool from Tricentis.",
+      "detail": "Tosca tests can be linked to qTest releases, and results are visible in both tools. Changes are not synchronised automatically: update the link in Tosca and check in.",
+      "topic": "Reporting"
+    },
+    {
       "term": "Random values",
       "simple": "Expressions that produce a new value on every run.",
       "detail": "{RND[5]} gives a five-digit number, {RND[1][16]} a number between limits, {RNDDECIMAL[2][100][999]} a decimal, {RANDOMTEXT[6]} letters and digits, and {RANDOMREGEX[\"...\"]} a text that follows a pattern.",
       "topic": "Buffers and parameterisation"
     },
     {
+      "term": "Receive Mail Simple",
+      "simple": "A module that looks for one e-mail and checks it.",
+      "detail": "ActionMode Input sets the search criteria, Verify checks the content, Buffer stores parts of it. Receive Mail Expert handles several e-mails.",
+      "topic": "TBox"
+    },
+    {
+      "term": "Reconciliation",
+      "simple": "A complete row by row comparison of two datasets.",
+      "detail": "The most thorough Data Integrity test. It reports missing rows and rows whose data differs.",
+      "topic": "Advanced topics"
+    },
+    {
       "term": "Recovery Scenario",
       "simple": "Steps that repair an unexpected situation and let the test try again.",
       "detail": "Created with 'Create Recovery Scenario Collection' on a TestCase or folder. A scenario counts as successful when all its steps pass.",
       "topic": "Recovery and cleanup scenarios"
+    },
+    {
+      "term": "Regression test",
+      "simple": "Running the existing tests again after a change.",
+      "detail": "It shows whether something that worked before is now broken. Regression tests are repeated most often, so they are the first candidates for automation.",
+      "topic": "Getting started"
     },
     {
       "term": "Request and response",
@@ -3261,6 +5857,12 @@ window.TOSCA_STUDY = {
       "topic": "TestCase design"
     },
     {
+      "term": "Revision",
+      "simple": "The record of one checkin.",
+      "detail": "It has a number, the date, the user and an optional comment, and lists the changed objects. You can revert to an earlier revision.",
+      "topic": "Multi-user workspaces"
+    },
+    {
       "term": "Revoke checkout",
       "simple": "An administrator removing someone's lock.",
       "detail": "A last resort, because the owner's unpublished changes are discarded.",
@@ -3273,10 +5875,22 @@ window.TOSCA_STUDY = {
       "topic": "Reporting"
     },
     {
+      "term": "Row Key",
+      "simple": "The column or columns that identify a row in a data comparison.",
+      "detail": "In a row by row comparison, Tosca pairs source and target rows by their Row Key and then compares the other columns.",
+      "topic": "Advanced topics"
+    },
+    {
       "term": "RowCount and ResultCount",
       "simple": "Properties that return how many rows a table has, or how many elements match.",
       "detail": "Typed in the value with a dot, for example .RowCount==7 to verify or Rows=.RowCount to store the number in a Buffer.",
       "topic": "Steering dynamic controls"
+    },
+    {
+      "term": "Salesforce Scan",
+      "simple": "A scan that creates Modules for Salesforce through its API.",
+      "detail": "Started from the Modules menu. It needs a user name, a password, the environment, and a security token outside the trusted IP range.",
+      "topic": "Module scanning (XScan)"
     },
     {
       "term": "SAP engine",
@@ -3309,6 +5923,12 @@ window.TOSCA_STUDY = {
       "topic": "Reporting"
     },
     {
+      "term": "Service port",
+      "simple": "The virtual address your application calls instead of the real service.",
+      "detail": "You create one in an OSV Environment for each real service that is being replaced.",
+      "topic": "API testing"
+    },
+    {
       "term": "Service virtualization",
       "simple": "A stand-in that answers like a real service that is not available.",
       "detail": "Tosca's Orchestrated Service Virtualization (OSV) simulates the missing service so tests can still run.",
@@ -3319,6 +5939,18 @@ window.TOSCA_STUDY = {
       "simple": "A workspace that does not download high-volume data.",
       "detail": "An option when creating a multi-user workspace. It speeds up creation for large repositories.",
       "topic": "Multi-user workspaces"
+    },
+    {
+      "term": "Smoke test",
+      "simple": "A short first check that the application starts and its main paths work.",
+      "detail": "Run it before the long regression suite. If the smoke test fails, the build is not worth testing further.",
+      "topic": "Getting started"
+    },
+    {
+      "term": "Special Execution Task (SET)",
+      "simple": "A C# class that adds one new action to Tosca.",
+      "detail": "It is connected to a Module with the configuration parameters Engine and SpecialExecutionTask, and then used like any standard module.",
+      "topic": "Advanced topics"
     },
     {
       "term": "Standard subset",
@@ -3351,6 +5983,18 @@ window.TOSCA_STUDY = {
       "topic": "Buffers and parameterisation"
     },
     {
+      "term": "Subset (.tsu)",
+      "simple": "A file with exported objects, for moving them to another project.",
+      "detail": "Export Subset writes it, Import Subset reads it. Referenced Modules come along. Merge keeps the identity of objects; Import creates copies.",
+      "topic": "Multi-user workspaces"
+    },
+    {
+      "term": "TBox API",
+      "simple": "The programming interface of Tosca's automation engine.",
+      "detail": "Used to write Special Execution Tasks and to change how controls are steered.",
+      "topic": "Advanced topics"
+    },
+    {
       "term": "TBox Evaluation Tool",
       "simple": "A step that checks whether an expression is true.",
       "detail": "Its Expression attribute is used with ActionMode Verify, for example {B[Count]} <= {B[Rows]}. Text values go in single quotes.",
@@ -3373,6 +6017,12 @@ window.TOSCA_STUDY = {
       "simple": "A step that starts a program or a command.",
       "detail": "It takes a Path and Arguments, and can wait for the program to exit. Used, for example, to start a browser in private mode or to run taskkill.",
       "topic": "TBox"
+    },
+    {
+      "term": "TC-Shell",
+      "simple": "The command line of Tosca Commander.",
+      "detail": "Interactive mode takes typed commands. Script mode runs a .tcs file unattended, for example from the Windows Task Scheduler.",
+      "topic": "Administration"
     },
     {
       "term": "TDS and TestCaseDesign",
@@ -3405,6 +6055,12 @@ window.TOSCA_STUDY = {
       "topic": "Test data (TDM/TDS)"
     },
     {
+      "term": "Test pyramid",
+      "simple": "A rule of thumb: many fast low-level tests, few slow screen tests.",
+      "detail": "Unit tests form the base, API and integration tests the middle, and UI tests the small top.",
+      "topic": "Getting started"
+    },
+    {
       "term": "TestEvent",
       "simple": "A package of ExecutionLists that DEX runs together.",
       "detail": "It is created in Tosca Commander and is also what a CI pipeline triggers.",
@@ -3435,10 +6091,28 @@ window.TOSCA_STUDY = {
       "topic": "CI/CD integration"
     },
     {
+      "term": "Tosca Cloud",
+      "simple": "The version of Tosca that runs in the browser and is hosted by Tricentis.",
+      "detail": "Tests are run by agents: personal, team or cloud agents. Execution is handled by the Elastic Execution Grid.",
+      "topic": "Getting started"
+    },
+    {
       "term": "Tosca Execution Client",
       "simple": "The newer way to start Tosca tests from a pipeline.",
       "detail": "A script that talks to Tosca Server and triggers TestEvents. It replaces the legacy CI Client.",
       "topic": "CI/CD integration"
+    },
+    {
+      "term": "Tosca Server",
+      "simple": "The shared server side of an on-premises installation.",
+      "detail": "Installed once for the team. It hosts services such as Distributed Execution, the Test Data Service and Tricentis User Administration.",
+      "topic": "Getting started"
+    },
+    {
+      "term": "TQL",
+      "simple": "The Tosca Query Language, for exact searches in a project.",
+      "detail": "Example: =>SUBPARTS:TestCase[Name==\"Test001\"]. The arrow -> takes one step, => searches every level.",
+      "topic": "Administration"
     },
     {
       "term": "Transaction code (T-code)",
@@ -3459,10 +6133,28 @@ window.TOSCA_STUDY = {
       "topic": "Multi-user workspaces"
     },
     {
+      "term": "User Path",
+      "simple": "In NeoLoad, the sequence of requests one virtual user sends.",
+      "detail": "It can be created from a Tosca TestCase with the NeoLoad Add-on.",
+      "topic": "Advanced topics"
+    },
+    {
       "term": "Verification failure",
       "simple": "Tosca found the control, but the value was not the expected one.",
       "detail": "Often a real defect, so think before you let recovery or Continue hide it.",
       "topic": "Recovery and cleanup scenarios"
+    },
+    {
+      "term": "Virtual folder",
+      "simple": "A folder that shows the result of a saved TQL query.",
+      "detail": "The query is stored in the folder's Query property and is evaluated from the folder's position in the tree.",
+      "topic": "Administration"
+    },
+    {
+      "term": "Vision AI",
+      "simple": "Recognising controls by how they look on the screen.",
+      "detail": "Used when no engine can read the controls, for example in a remote desktop session or a drawn canvas. It is slower and depends on the display, so it comes last.",
+      "topic": "Module scanning (XScan)"
     },
     {
       "term": "WaitOn and TBox Wait",
@@ -3481,6 +6173,18 @@ window.TOSCA_STUDY = {
       "simple": "Your local working copy of the Tosca project.",
       "detail": "Single-user workspaces stand alone. Multi-user workspaces are connected to a common repository.",
       "topic": "Multi-user workspaces"
+    },
+    {
+      "term": "WorkState",
+      "simple": "How far a TestCase is: PLANNED, IN_WORK or COMPLETED.",
+      "detail": "The property is called TestCaseWorkState. Coverage in the Requirements section counts PLANNED as 20%, IN_WORK as 50% and COMPLETED as 100%.",
+      "topic": "TestCase design"
+    },
+    {
+      "term": "XBrowser engine",
+      "simple": "The engine that automates web pages in the browser.",
+      "detail": "It needs the Tosca browser extension. The Test Configuration Parameter Browser selects Chrome, Edge, Firefox or another supported browser.",
+      "topic": "Execution lists and DEX"
     },
     {
       "term": "XBuffer",

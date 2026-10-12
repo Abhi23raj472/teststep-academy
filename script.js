@@ -27,7 +27,6 @@
   var THEME_KEY = 'tsh.theme';
   var SVG_NS = 'http://www.w3.org/2000/svg';
   var EASE_OUT = [0.22, 1, 0.36, 1];
-  var STAGGER_COUNT = 8; // cards animated as a group; the rest animate as they scroll into view
 
   var state = {
     questions: [],
@@ -41,7 +40,6 @@
 
   var cardEntries = new Map(); // question id -> the DOM parts of its card
   var topicButtons = [];
-  var stopWatching = [];        // cleanup functions for scroll-triggered animations
 
   var el = {};
   [
@@ -481,15 +479,6 @@
     whenDone(entry.animation, settle);
   }
 
-  // Steps come in one after another when a panel opens.
-  function cascade(container) {
-    if (!motionOn()) return;
-    var parts = container.querySelectorAll('.approach li, .syntax-item, .syntax-docs, .mistake, .answer, .source');
-    if (!parts.length) return;
-    animate(parts, { opacity: [0, 1], x: [-10, 0] },
-      { duration: 0.32, ease: EASE_OUT, delay: Motion.stagger(0.045, { startDelay: 0.06 }) });
-  }
-
   function setCardOpen(q, open, animated) {
     var entry = cardEntries.get(q.id);
     if (open) state.openIds.add(q.id); else state.openIds.delete(q.id);
@@ -497,9 +486,7 @@
     if (open && !entry.details.firstChild) entry.details.appendChild(detailsContent(q));
     entry.li.classList.toggle('is-open', open);
     entry.toggle.setAttribute('aria-expanded', String(open));
-    slide(entry, entry.body, open, animated, function (didAnimate) {
-      if (didAnimate) cascade(entry.details);
-    });
+    slide(entry, entry.body, open, animated);
   }
 
   // ---------- question list ----------
@@ -563,33 +550,13 @@
     entry.mark.title = marked ? 'Remove bookmark' : 'Bookmark';
   }
 
-  function stopScrollAnimations() {
-    stopWatching.forEach(function (stop) { if (typeof stop === 'function') stop(); });
-    stopWatching = [];
-  }
-
-  // The first cards rise in as a group; later ones rise as they are scrolled to.
-  function animateCardsIn(items) {
-    if (!motionOn() || !items.length) return;
-    animate(items.slice(0, STAGGER_COUNT), { opacity: [0, 1], y: [16, 0] },
-      { duration: 0.4, ease: EASE_OUT, delay: Motion.stagger(0.045) });
-    items.slice(STAGGER_COUNT).forEach(function (item) {
-      if (typeof Motion.inView !== 'function') return;
-      stopWatching.push(Motion.inView(item, function () {
-        animate(item, { opacity: [0, 1], y: [14, 0] }, { duration: 0.38, ease: EASE_OUT });
-      }, { margin: '0px 0px -8% 0px' }));
-    });
-  }
-
   function renderList(list, animated) {
-    stopScrollAnimations();
     cardEntries.clear();
     el.cards.textContent = '';
     var frag = document.createDocumentFragment();
     var items = list.map(renderCard);
     items.forEach(function (item) { frag.appendChild(item); });
     el.cards.appendChild(frag);
-    if (animated) animateCardsIn(items);
 
     el.empty.hidden = list.length > 0;
     if (!list.length) {
@@ -598,7 +565,6 @@
       el.emptyHint.textContent = noBookmarks
         ? 'Use the bookmark icon on a question to save it here.'
         : 'Try a different search term or clear the filters.';
-      if (animated) animate(el.empty, { opacity: [0, 1], y: [10, 0] }, { duration: 0.3, ease: EASE_OUT });
     }
   }
 
@@ -692,7 +658,6 @@
     var entry = cardEntries.get(id);
     if (entry) {
       paintBookmark(entry, marked);
-      if (marked) animate(entry.mark, { scale: [1, 1.3, 1] }, { duration: 0.4, ease: EASE_OUT });
     }
   }
 
@@ -740,7 +705,6 @@
     document.documentElement.setAttribute('data-theme', next);
     try { localStorage.setItem(THEME_KEY, next); } catch (e) { /* not saved */ }
     labelThemeToggle();
-    animate(el.themeToggle.querySelectorAll('svg'), { rotate: [-90, 0], scale: [0.6, 1] }, { duration: 0.4, ease: EASE_OUT });
   });
 
   el.toTop.addEventListener('click', function () {
@@ -799,25 +763,7 @@
 
   // ---------- start ----------
 
-  function countUp(node, value) {
-    if (!motionOn()) {
-      node.textContent = String(value);
-      return;
-    }
-    try {
-      Motion.animate(0, value, {
-        duration: 0.9,
-        ease: 'easeOut',
-        onUpdate: function (latest) { node.textContent = String(Math.round(latest)); }
-      });
-    } catch (e) {
-      node.textContent = String(value);
-    }
-  }
-
   labelThemeToggle();
-  animate(el.hero.querySelectorAll('[data-rise]'), { opacity: [0, 1], y: [18, 0] },
-    { duration: 0.55, ease: EASE_OUT, delay: Motion ? Motion.stagger(0.07) : 0 });
 
   var ready = loadQuestions()
     .then(function (data) {
@@ -826,8 +772,8 @@
       var ids = new Set(state.questions.map(function (q) { return q.id; }));
       state.bookmarks.forEach(function (id) { if (!ids.has(id)) state.bookmarks.delete(id); });
       var topicCount = buildTopics();
-      countUp(el.statQuestions, state.questions.length);
-      countUp(el.statTopics, topicCount);
+      el.statQuestions.textContent = String(state.questions.length);
+      el.statTopics.textContent = String(topicCount);
       render({ animated: true });
       return state.questions;
     })

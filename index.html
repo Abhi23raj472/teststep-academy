@@ -3,23 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Only this site's own files may run as script; styles and fonts may also come from Google Fonts. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
   <title>TestStep Academy</title>
   <meta name="description" content="Study material for Tricentis Tosca: a full syllabus in simple words with diagrams and examples, plus scenario-based interview questions.">
   <meta name="color-scheme" content="light dark">
-  <script>
-    // Set the theme before first paint: saved choice first, otherwise the system setting.
-    (function () {
-      var saved = null;
-      try { saved = localStorage.getItem('tsh.theme'); } catch (e) {}
-      var dark = saved ? saved === 'dark'
-        : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-    })();
-  </script>
+  <script src="theme.js"></script>
   <!-- Fonts are optional: without a connection the page falls back to system fonts. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -69,7 +62,7 @@
     <section class="view" id="view-home" hidden>
       <div class="wrap home-hero">
         <p class="eyebrow">Tricentis Tosca · study material</p>
-        <h1 tabindex="-1">Learn Tosca step by step, in <span class="accent-text">simple words</span>.</h1>
+        <h1 tabindex="-1">Learn Tosca step by step, in simple words.</h1>
         <p class="lead">A complete syllabus with a diagram and a worked example for every topic. When you are ready, practise with real interview questions.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" id="homeContinue" href="#/syllabus">Start learning</a>
@@ -146,11 +139,11 @@
     <section class="view" id="view-interview" hidden>
       <section class="hero wrap" id="hero">
         <div class="hero-text">
-          <p class="eyebrow" data-rise>Interview preparation</p>
-          <h1 data-rise tabindex="-1">Scenario questions, with the <span class="accent-text">approach</span> to solve each one.</h1>
-          <p class="lead" data-rise>Real situations interviewers ask about. Open a question for the steps, the exact syntax, the mistake to avoid and a short answer you can say out loud.</p>
+          <p class="eyebrow">Interview preparation</p>
+          <h1 tabindex="-1">Scenario questions, with the approach to solve each one.</h1>
+          <p class="lead">Real situations interviewers ask about. Open a question for the steps, the exact syntax, the mistake to avoid and a short answer you can say out loud.</p>
         </div>
-        <dl class="stats" data-rise>
+        <dl class="stats">
           <div class="stat"><dt>Questions</dt><dd id="statQuestions">–</dd></div>
           <div class="stat"><dt>Topics</dt><dd id="statTopics">–</dd></div>
           <div class="stat"><dt>Bookmarked</dt><dd id="statBookmarks">0</dd></div>

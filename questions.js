@@ -44,7 +44,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Intermediate",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -75,7 +75,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Intermediate",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -93,7 +93,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Beginner",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -124,7 +124,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Intermediate",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -146,7 +146,7 @@ window.TOSCA_QUESTIONS = [
     "docs": [
       {
         "title": "Reusable TestStepBlocks",
-        "url": "https://documentation.tricentis.com/tosca/2410/en/content/tosca_commander/reusable_teststepblocks.htm"
+        "url": "https://docs.tricentis.com/tosca-2024.1/en-us/content/tosca_commander/reusable_teststepblocks.htm"
       }
     ],
     "answer": "Repeated steps belong in a Reusable TestStepBlock in a library, with Business Parameters for the values that vary. TestCases hold a reference to the block, so adding the new login field is one change in the library instead of 200.",
@@ -154,7 +154,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Beginner",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -185,7 +185,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Advanced",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -215,7 +215,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Intermediate",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -253,7 +253,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Intermediate",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -272,7 +272,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Advanced",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -291,7 +291,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Beginner",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -330,7 +330,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Intermediate",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -360,7 +360,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Beginner",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -398,7 +398,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Beginner",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -442,7 +442,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Advanced",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -481,7 +481,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Intermediate",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -511,7 +511,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Beginner",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -543,7 +543,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Advanced",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -578,7 +578,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Intermediate",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -597,7 +597,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Beginner",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -616,7 +616,7 @@ window.TOSCA_QUESTIONS = [
     "difficulty": "Beginner",
     "source": {
       "title": "Sample entry - cross-check in the Tricentis Tosca documentation",
-      "url": "https://documentation.tricentis.com/"
+      "url": "https://docs.tricentis.com/"
     }
   },
   {
@@ -646,7 +646,7 @@ window.TOSCA_QUESTIONS = [
     "docs": [
       {
         "title": "Default properties for Modules",
-        "url": "https://documentation.tricentis.com/tosca/2320/en/content/tosca_commander/modules_properties.htm"
+        "url": "https://docs.tricentis.com/tosca-2023.2/en-us/content/tosca_commander/modules_properties.htm"
       },
       {
         "title": "Using properties of controls",
@@ -688,7 +688,7 @@ window.TOSCA_QUESTIONS = [
     "docs": [
       {
         "title": "XBrowser Engine 3.0",
-        "url": "https://documentation.tricentis.com/tosca/2410/en/content/engines_3.0/xbrowser/xbrowser.htm"
+        "url": "https://docs.tricentis.com/tosca-2024.1/en-us/content/engines_3.0/xbrowser/xbrowser.htm"
       }
     ],
     "answer": "Edge. A Test Configuration Parameter set on the ExecutionList overrides the same parameter on the TestCase, so the execution side wins. The TestCase value only applies when nothing overrides it, for example in a ScratchBook run. The same rule holds for any parameter, such as a QA versus UAT environment.",
@@ -1536,7 +1536,7 @@ window.TOSCA_QUESTIONS = [
     "docs": [
       {
         "title": "XBrowser Engine 3.0",
-        "url": "https://documentation.tricentis.com/tosca/2410/en/content/engines_3.0/xbrowser/xbrowser.htm"
+        "url": "https://docs.tricentis.com/tosca-2024.1/en-us/content/engines_3.0/xbrowser/xbrowser.htm"
       },
       {
         "title": "Buffer Operations",
@@ -2839,7 +2839,7 @@ window.TOSCA_QUESTIONS = [
       },
       {
         "title": "Reusable TestStepBlocks",
-        "url": "https://documentation.tricentis.com/tosca/2410/en/content/tosca_commander/reusable_teststepblocks.htm"
+        "url": "https://docs.tricentis.com/tosca-2024.1/en-us/content/tosca_commander/reusable_teststepblocks.htm"
       }
     ],
     "answer": "Yes, a Test Configuration Parameter can be the value of a Business Parameter. In the TestCase that uses the block I set the Business Parameter to the CP expression, so the block stays generic and the environment-specific value comes from configuration.",
@@ -2953,7 +2953,7 @@ window.TOSCA_QUESTIONS = [
     "docs": [
       {
         "title": "Default properties for Modules",
-        "url": "https://documentation.tricentis.com/tosca/2320/en/content/tosca_commander/modules_properties.htm"
+        "url": "https://docs.tricentis.com/tosca-2023.2/en-us/content/tosca_commander/modules_properties.htm"
       }
     ],
     "answer": "The dropdown in a TestStep comes from the ValueRange of the ModuleAttribute, which Tosca fills while scanning. I can edit it, so I add the valid values there and remove unsuitable ones. Testers then pick from a list and cannot mistype.",

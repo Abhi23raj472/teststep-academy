@@ -24,14 +24,16 @@ from __future__ import annotations
 
 import argparse
 import html
+import ipaddress
 import json
 import os
 import re
+import socket
 import sys
 import time
 from difflib import SequenceMatcher
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 from urllib.robotparser import RobotFileParser
 
 ROOT = Path(__file__).resolve().parent
@@ -74,6 +76,8 @@ USER_AGENT = "TestStepAcademyBot/1.0 (personal study project)"
 TRANSCRIPT_LANGUAGES = ["en", "en-IN", "en-US", "en-GB", "hi"]
 MIN_SOURCE_CHARS = 500       # shorter than this is not worth sending to the model
 MAX_SOURCE_CHARS = 400_000   # longer sources are cut here, with a warning
+MAX_PAGE_BYTES = 5_000_000   # a page is read up to this size, the rest is ignored
+MAX_REDIRECTS = 5
 DUPLICATE_RATIO = 0.87       # how similar two questions must be to count as the same
 LOGIN_HINTS = ("login", "log-in", "signin", "sign-in", "sso", "/auth", "account/verify")
 
@@ -338,35 +342,93 @@ def allowed_by_robots(session, url: str) -> bool:
     return parser is not None and parser.can_fetch(USER_AGENT, url)
 
 
+def is_public_address(url: str) -> bool:
+    """True when the host resolves only to public internet addresses.
+
+    The text of every page is sent to the Anthropic API, so the script must not
+    be pointed, directly or through a redirect, at localhost or at a machine on
+    the local network.
+    """
+    host = urlparse(url).hostname
+    if not host:
+        return False
+    try:
+        found = socket.getaddrinfo(host, None)
+    except OSError:
+        return False
+    try:
+        return bool(found) and all(
+            ipaddress.ip_address(info[4][0].split("%")[0]).is_global for info in found)
+    except ValueError:
+        return False
+
+
+def download_page(session, url: str) -> tuple[str, bytes] | None:
+    """Fetch a public HTML page. Returns (final URL, body) or None when it must be skipped.
+
+    Redirects are followed by hand so that every hop gets the same checks as
+    the first URL, and the body is read only up to MAX_PAGE_BYTES.
+    """
+    for _ in range(MAX_REDIRECTS + 1):
+        if urlparse(url).scheme not in ("http", "https"):
+            print("    skipped: not an http(s) URL")
+            return None
+        if not is_public_address(url):
+            print("    skipped: not a public internet address")
+            return None
+        if not allowed_by_robots(session, url):
+            print("    skipped: robots.txt does not allow it (or could not be checked)")
+            return None
+
+        try:
+            response = session.get(url, timeout=30, allow_redirects=False, stream=True)
+        except Exception as exc:
+            print(f"    skipped: could not fetch ({type(exc).__name__})")
+            return None
+
+        try:
+            if response.status_code in (301, 302, 303, 307, 308) and response.headers.get("location"):
+                url = urljoin(url, response.headers["location"])
+                continue
+
+            final_path = urlparse(url).path.lower()
+            if response.status_code in (401, 402, 403, 407) or any(h in final_path for h in LOGIN_HINTS):
+                print("    skipped: needs a login")
+                return None
+            if response.status_code >= 400:
+                print(f"    skipped: HTTP {response.status_code}")
+                return None
+            if "html" not in response.headers.get("content-type", "html").lower():
+                print("    skipped: not an HTML page")
+                return None
+
+            body = b""
+            for chunk in response.iter_content(65536):
+                body += chunk
+                if len(body) >= MAX_PAGE_BYTES:
+                    print(f"    warning: page is larger than {MAX_PAGE_BYTES:,} bytes, the rest is ignored")
+                    body = body[:MAX_PAGE_BYTES]
+                    break
+            return url, body
+        except Exception as exc:
+            print(f"    skipped: could not read the page ({type(exc).__name__})")
+            return None
+        finally:
+            response.close()
+
+    print("    skipped: too many redirects")
+    return None
+
+
 def fetch_page(session, url: str) -> dict | None:
     """Readable text of a public page, or None when it must be skipped."""
     from bs4 import BeautifulSoup
 
-    if urlparse(url).scheme not in ("http", "https"):
-        print("    skipped: not an http(s) URL")
-        return None
-    if not allowed_by_robots(session, url):
-        print("    skipped: robots.txt does not allow it (or could not be checked)")
+    page = download_page(session, url)
+    if page is None:
         return None
 
-    try:
-        response = session.get(url, timeout=30)
-    except Exception as exc:
-        print(f"    skipped: could not fetch ({type(exc).__name__})")
-        return None
-
-    final_path = urlparse(response.url).path.lower()
-    if response.status_code in (401, 402, 403, 407) or any(h in final_path for h in LOGIN_HINTS):
-        print("    skipped: needs a login")
-        return None
-    if response.status_code >= 400:
-        print(f"    skipped: HTTP {response.status_code}")
-        return None
-    if "html" not in response.headers.get("content-type", "html").lower():
-        print("    skipped: not an HTML page")
-        return None
-
-    soup = BeautifulSoup(response.text, "html.parser")
+    soup = BeautifulSoup(page[1], "html.parser")
     title = soup.title.get_text(strip=True) if soup.title else url
     has_password_field = soup.find("input", {"type": "password"}) is not None
 

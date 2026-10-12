@@ -3,9 +3,12 @@
 Study material for Tricentis Tosca in one small website:
 
 - **Home** explains how to use the site and shows your progress.
-- **Syllabus** covers Tosca in 29 lessons, grouped into 8 units. Every lesson
-  has a definition in simple words, an explanation, a diagram, a worked example,
-  key points, a common mistake and links to the Tricentis manual.
+- **Syllabus** covers Tosca from scratch in 47 lessons, grouped into 10 units:
+  from testing basics and installation, through Modules, TestCases, test data
+  and execution, to administration, data integrity, performance testing and
+  certifications. Every lesson has formal definitions of its key terms, the
+  same idea in simple words, an explanation, a diagram, a worked example, key
+  points, a common mistake and links to the Tricentis manual.
 - **Interview preparation** holds the scenario-based interview questions, each
   with a step-by-step approach, the exact syntax, a short answer and its source.
 - **Cheat sheet** lists the expressions and settings you type most often.
@@ -20,6 +23,7 @@ and glossary in `study.json`.
 | File | Purpose |
 | --- | --- |
 | `index.html`, `style.css` | The page and its styles |
+| `theme.js` | Sets the light or dark theme before the page is drawn |
 | `script.js` | The Interview preparation page |
 | `site.js` | Navigation, Home, Syllabus, lessons, Cheat sheet and Glossary |
 | `vendor/motion.js` | Animation library (see "Design and animation") |
@@ -77,15 +81,19 @@ The menu at the top switches between the pages. Each page has its own address
 
 ## Design and animation
 
-The layout is a floating top bar with the menu, and a sidebar next to the
-content on lessons and on the interview page (it moves out of the way on tablets
-and phones). The diagrams in the lessons are drawn from the lesson data with
-HTML and CSS, so they follow the theme. Colours are neutral slate with one
-blue accent, in a light and a dark theme. Text is set in IBM Plex Sans and
-Tosca expressions such as `{B[Name]}` in JetBrains Mono; both come from Google
-Fonts, and the page falls back to system fonts when offline.
+The look is plain and typographic: a white page, ink-coloured text, thin rules
+instead of boxes and shadows, and one accent colour that is used only for links
+and keyboard focus. A single bar across the top holds the menu, and lessons and
+the interview page have a sidebar next to the content (it moves out of the way
+on tablets and phones). The diagrams in the lessons are drawn from the lesson
+data with HTML and CSS, so they follow the light and the dark theme. Text is set
+in IBM Plex Sans and Tosca expressions such as `{B[Name]}` in IBM Plex Mono;
+both come from Google Fonts, and the page falls back to system fonts when
+offline.
 
-Animation uses [Motion](https://motion.dev), the library behind Framer Motion.
+Animation is kept to what helps: a question opening and closing, the progress
+bar and a short fade between pages. It uses [Motion](https://motion.dev), the
+library behind Framer Motion.
 `vendor/motion.js` is the plain-JavaScript build that ships inside the
 `framer-motion` package (version 13.4.4, file `dist/dom.js`, MIT licence in
 `vendor/motion-LICENSE.md`), so no React and no build step are needed. To update
@@ -93,6 +101,19 @@ it, install a newer `framer-motion` and copy that file again.
 
 The page still works if `vendor/motion.js` is missing, only without animation,
 and animation is switched off for visitors whose system asks for reduced motion.
+
+## Security
+
+- The page carries a Content-Security-Policy: only this site's own script files
+  may run, and styles and fonts may come only from this site and Google Fonts.
+  For that reason the page has no inline scripts, inline event handlers or
+  `style` attributes; keep it that way when you edit `index.html`.
+- All text from `questions.json` and `study.json` is inserted as text, never as
+  HTML, and a link is only created for `http` and `https` addresses.
+- `fetch_questions.py` reads only public internet addresses. It refuses
+  localhost and local-network addresses, checks every redirect in the same way,
+  and reads at most 5 MB of a page.
+- API keys belong in `.env`, which is listed in `.gitignore`.
 
 ## Editing the study content
 
@@ -104,6 +125,9 @@ A lesson looks like this:
   "id": "buffers",
   "unit": 4,
   "title": "Buffers",
+  "definitions": [
+    { "term": "Buffer", "text": "A precise, one-sentence definition of the term." }
+  ],
   "simple": "One or two sentences in everyday words.",
   "body": ["A paragraph.", "Another paragraph."],
   "graphics": [
@@ -124,6 +148,9 @@ A lesson looks like this:
 }
 ```
 
+- `definitions` lists the key terms of the lesson, each with a formal
+  definition. They are shown first on the lesson page, and the syllabus search
+  covers them. `simple` says the same idea in everyday language.
 - `graphics` is a list of diagrams. The types are `flow` (steps joined by
   arrows), `tree` (a root with children), `compare` (columns side by side),
   `stack` (a ranked list) and `grid` (a table).
@@ -263,7 +290,7 @@ run does not pay to analyse them again.
 
    ```bash
    git init
-   git add index.html style.css script.js site.js vendor questions.json questions.js study.json study.js README.md fetch_questions.py requirements.txt urls.txt .env.example .gitignore
+   git add index.html style.css theme.js script.js site.js vendor questions.json questions.js study.json study.js README.md fetch_questions.py requirements.txt urls.txt .env.example .gitignore
    git commit -m "TestStep Academy"
    git branch -M main
    git remote add origin https://github.com/YOUR-USERNAME/teststep-academy.git
