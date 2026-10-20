@@ -36,6 +36,8 @@ and glossary in `study.json`.
 | `fetch_questions.py` | Collects new questions from YouTube and web pages |
 | `urls.txt` | Your list of public blog and forum pages to read |
 | `requirements.txt`, `.env.example` | Setup for the script |
+| `tests/`, `playwright.config.js`, `package.json` | Automated checks for errors and broken links (see "Testing") |
+| `.github/workflows/site-tests.yml` | Runs those checks on GitHub |
 
 ## Opening the site
 
@@ -121,6 +123,41 @@ it, install a newer `framer-motion` and copy that file again.
 
 The page still works if `vendor/motion.js` is missing, only without animation,
 and animation is switched off for visitors whose system asks for reduced motion.
+
+## Testing
+
+Automated [Playwright](https://playwright.dev) tests check that the site has
+no errors and no broken links:
+
+- `tests/pages.spec.js` opens every page, every lesson and the theme switch. A
+  test fails on a script error, a console error (which includes a blocked
+  inline style or script), or a file of the site that does not load. It also
+  checks every link inside the site: each lesson, page, interview topic and
+  `#id` it points to must exist.
+- `tests/links.spec.js` checks every link to another website, one test per
+  address: the Tricentis manual pages, the YouTube videos and Google Fonts. A
+  link fails when it answers with an error or shows a "not found" page.
+  YouTube videos are checked through YouTube's oEmbed address, because a
+  deleted video's page still loads.
+
+To run them you need [Node.js](https://nodejs.org) 18 or newer:
+
+```bash
+npm install
+npx playwright install chromium
+npm test
+```
+
+`npm run test:pages` runs only the page checks, and `npm run test:links` only
+the website links. Without internet, skip the website links with
+`SKIP_EXTERNAL=1 npm test` (in PowerShell: `$env:SKIP_EXTERNAL=1; npm test`).
+The tests start their own small server (`tests/serve.js`), so nothing else
+needs to be running.
+
+On GitHub, the "Site tests" workflow runs everything on each push to `main`,
+on each pull request and every Monday, so a manual page that moves is noticed
+even when nothing in the site changed. When a run fails, its Playwright report
+is attached to the run.
 
 ## Security
 

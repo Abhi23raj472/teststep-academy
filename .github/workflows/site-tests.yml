@@ -1,9 +1,10 @@
-# Runs the site tests on every push and pull request, and once a week so a
+# Runs the site tests on every push to main and every pull request, and once a week so a
 # Tricentis or YouTube link that stops working is noticed even without changes.
 name: Site tests
 
 on:
   push:
+    branches: [main]
   pull_request:
   schedule:
     - cron: "17 3 * * 1" # Mondays, 03:17 UTC
@@ -14,18 +15,18 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # the Ubuntu version this Playwright release supports
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: playwright-report
