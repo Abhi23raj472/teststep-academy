@@ -12,7 +12,7 @@
   <!-- Fonts are optional: without a connection the page falls back to system fonts. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=JetBrains+Mono:wght@500;600&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -61,16 +61,37 @@
     <!-- Home -->
     <section class="view" id="view-home" hidden>
       <div class="wrap home-hero">
-        <p class="eyebrow">Tricentis Tosca · study material</p>
-        <h1 tabindex="-1">Learn Tosca step by step, in simple words.</h1>
-        <p class="lead">A complete syllabus with a diagram and a worked example for every topic. When you are ready, practise with real interview questions.</p>
-        <div class="hero-actions">
-          <a class="btn btn-primary" id="homeContinue" href="#/syllabus">Start learning</a>
-          <a class="btn" href="#/interview">Interview preparation</a>
+        <div class="home-hero-text">
+          <p class="eyebrow-pill"><span class="pill-new tone-mint">New</span><span id="homeCounts">Tricentis Tosca · study material</span></p>
+          <h1 tabindex="-1">Learn Tosca step by step, in simple words.</h1>
+          <p class="lead">Every lesson starts with a plain explanation, then shows the exact syntax, a diagram and a worked example. When you are ready, practise on real interview questions.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary btn-lg" id="homeContinue" href="#/syllabus">Start learning</a>
+            <a class="btn btn-lg" href="#/interview">Interview preparation</a>
+          </div>
         </div>
-        <div class="progress-card" id="homeProgress" hidden>
-          <div class="progress-head"><span id="homeProgressText"></span><span id="homeProgressPercent"></span></div>
-          <div class="progress-track"><span class="progress-bar" id="homeProgressBar"></span></div>
+        <!-- Decoration: the same progress is given in words in "Pick up where you left off" -->
+        <div class="hero-art" aria-hidden="true">
+          <div class="hero-disc"></div>
+          <div class="hero-well"></div>
+          <svg class="hero-ring" viewBox="0 0 220 220" width="220" height="220">
+            <circle class="hero-ring-bar" id="homeRingBar" cx="110" cy="110" r="84" stroke-dasharray="0 528" transform="rotate(-90 110 110)"/>
+            <text class="hero-ring-value" id="homeRingValue" x="110" y="114" text-anchor="middle">0%</text>
+            <text class="hero-ring-label" id="homeRingLabel" x="110" y="140" text-anchor="middle">lessons done</text>
+          </svg>
+          <span class="hero-chip hero-chip-code tone-lilac">{B[OrderNo]}</span>
+          <span class="hero-chip hero-chip-modules tone-mint" id="homeChipModules">Modules</span>
+          <span class="hero-chip hero-chip-questions tone-peach" id="homeChipQuestions">Interview questions</span>
+          <span class="hero-blob hero-blob-lemon tone-lemon"></span>
+          <span class="hero-blob hero-blob-sky tone-sky"></span>
+        </div>
+      </div>
+
+      <div class="wrap section">
+        <h2 class="section-title">Pick up where you left off</h2>
+        <div class="home-progress">
+          <div class="next-card" id="homeNext"></div>
+          <div class="stat-tiles" id="homeStats"></div>
         </div>
       </div>
 
@@ -81,26 +102,29 @@
 
       <div class="wrap section">
         <div class="section-head">
-          <h2 class="section-title">The syllabus</h2>
+          <h2 class="section-title">Your learning path</h2>
           <a class="text-link" href="#/syllabus">See all lessons</a>
         </div>
-        <div class="unit-grid" id="homeUnits"></div>
+        <div id="homeUnits"></div>
       </div>
 
       <div class="wrap section">
         <h2 class="section-title">More to help you</h2>
         <div class="more-grid">
-          <a class="more-card" href="#/interview">
+          <a class="more-card more-card-clay tone-lilac" href="#/interview">
             <h3>Interview preparation</h3>
             <p><span id="homeQuestionCount">Scenario</span> questions with the approach, the exact syntax and a short answer.</p>
+            <span class="more-go">Start practising</span>
           </a>
           <a class="more-card" href="#/cheatsheet">
             <h3>Cheat sheet</h3>
             <p>Every expression and setting on one page, each with a copy button.</p>
+            <span class="more-go">Open the cheat sheet</span>
           </a>
           <a class="more-card" href="#/glossary">
             <h3>Glossary</h3>
             <p>Tosca terms from A to Z, each in one simple sentence and in more detail.</p>
+            <span class="more-go">Browse the glossary</span>
           </a>
         </div>
       </div>

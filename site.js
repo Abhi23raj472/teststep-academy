@@ -14,7 +14,8 @@
   var TITLES = { syllabus: 'Syllabus', interview: 'Interview preparation', cheatsheet: 'Cheat sheet', glossary: 'Glossary' };
   var SITE = 'TestStep Academy';
 
-  var study = { units: [], lessons: [], cheatsheet: [], glossary: [] };
+  var study = { units: [], phases: [], lessons: [], cheatsheet: [], glossary: [] };
+  var RING = 2 * Math.PI * 84; // circumference of the progress ring on Home (r = 84)
   var done = loadDone();          // ids of lessons the visitor marked as done
   var questionTotal = 0;
   var firstRoute = true;
@@ -23,7 +24,8 @@
   var el = {};
   [
     'nav', 'navLinks', 'menuToggle', 'syllabusItem', 'syllabusLink', 'syllabusMenu',
-    'homeContinue', 'homeProgress', 'homeProgressText', 'homeProgressPercent', 'homeProgressBar',
+    'homeContinue', 'homeCounts', 'homeRingBar', 'homeRingValue', 'homeRingLabel',
+    'homeChipModules', 'homeChipQuestions', 'homeNext', 'homeStats',
     'homePath', 'homeUnits', 'homeQuestionCount',
     'syllabusLead', 'syllabusSearch', 'syllabusList', 'syllabusEmpty',
     'lessonOutline', 'lessonArticle',
@@ -91,6 +93,60 @@
     return lesson.unit + '.' + (lessonsOf(lesson.unit).indexOf(lesson) + 1);
   }
 
+  // Modules are grouped into phases; each phase has a colour ("tone") used for its badges.
+  function phases() {
+    if (study.phases.length) return study.phases;
+    return [{ title: 'All modules', from: 1, to: study.units.length, tone: 'lilac' }];
+  }
+
+  function phaseOf(unitId) {
+    return phases().find(function (phase) { return unitId >= phase.from && unitId <= phase.to; }) || { tone: 'lilac' };
+  }
+
+  function toneClass(tone) {
+    var name = String(tone || '').replace(/[^a-z]/g, '');
+    return 'tone-' + (name || 'lilac');
+  }
+
+  function unitTone(unitId) {
+    return toneClass(phaseOf(unitId).tone);
+  }
+
+  function unitsOf(phase) {
+    return study.units.filter(function (unit) { return unit.id >= phase.from && unit.id <= phase.to; });
+  }
+
+  function doneCount(lessons) {
+    return lessons.filter(function (lesson) { return done.has(lesson.id); }).length;
+  }
+
+  function pad2(n) {
+    return (n < 10 ? '0' : '') + n;
+  }
+
+  function badge(className, text) {
+    var span = h('span', className, text);
+    span.setAttribute('aria-hidden', 'true');
+    return span;
+  }
+
+  function track(share) {
+    var outer = h('span', 'track');
+    outer.setAttribute('aria-hidden', 'true');
+    var fill = h('span', 'track-fill');
+    fill.style.width = Math.round(Math.max(0, Math.min(1, share)) * 100) + '%';
+    outer.appendChild(fill);
+    return outer;
+  }
+
+  function phaseHead(phase, index, level) {
+    var head = h('div', 'phase-head');
+    head.appendChild(h(level, 'phase-chip ' + toneClass(phase.tone), 'Phase ' + (index + 1) + ' · ' + phase.title));
+    head.appendChild(h('span', 'phase-range', 'Modules ' + phase.from + '–' + phase.to));
+    if (phase.text) head.appendChild(h('p', 'phase-text', phase.text));
+    return head;
+  }
+
   function lessonHref(lesson) {
     return '#/learn/' + encodeURIComponent(lesson.id);
   }
@@ -125,7 +181,7 @@
     if (!checked.length) return null;
     var p = h('p', 'syntax-docs', lead);
     checked.forEach(function (doc, index) {
-      if (index) p.appendChild(document.createTextNode(', '));
+      if (index) p.appendChild(h('span', 'docs-sep', ', '));
       var a = h('a', '', doc.title);
       a.href = safeUrl(doc.url);
       a.target = '_blank';
@@ -255,8 +311,11 @@
   function renderMenu() {
     el.syllabusMenu.textContent = '';
     study.units.forEach(function (unit) {
-      var box = h('div', 'mega-unit');
-      box.appendChild(h('h3', '', 'Module ' + unit.id + ' · ' + unit.title));
+      var box = h('div', 'mega-unit ' + unitTone(unit.id));
+      var title = h('h3');
+      title.appendChild(badge('mega-badge', pad2(unit.id)));
+      title.appendChild(h('span', '', unit.title));
+      box.appendChild(title);
       var ul = h('ul');
       lessonsOf(unit.id).forEach(function (lesson) {
         var li = h('li');
@@ -291,9 +350,91 @@
 
   // ---------- Home ----------
 
+  // One module as a card: badge, title, and how many of its lessons are done.
+  function moduleCard(unit) {
+    var lessons = lessonsOf(unit.id);
+    var finished = doneCount(lessons);
+    var complete = lessons.length > 0 && finished === lessons.length;
+    var target = lessons.find(function (lesson) { return !done.has(lesson.id); }) || lessons[0];
+    var card = link('module-card ' + unitTone(unit.id) + (complete ? ' is-done' : ''), '', lessonHref(target));
+
+    var top = h('span', 'module-card-top');
+    top.appendChild(badge('module-badge', pad2(unit.id)));
+    if (complete) {
+      var tickMark = h('span', 'module-done');
+      tickMark.appendChild(icon('check', 16));
+      top.appendChild(tickMark);
+    } else if (finished) {
+      top.appendChild(h('span', 'module-started', 'Started'));
+    }
+    card.appendChild(top);
+
+    card.appendChild(h('span', 'visually-hidden', 'Module ' + unit.id + ': '));
+    card.appendChild(h('span', 'module-card-title', unit.title));
+    var foot = h('span', 'module-card-foot');
+    foot.appendChild(track(lessons.length ? finished / lessons.length : 0));
+    var count = h('span', 'module-count', finished + '/' + lessons.length);
+    count.appendChild(h('span', 'visually-hidden', ' lessons done'));
+    foot.appendChild(count);
+    card.appendChild(foot);
+    return card;
+  }
+
+  // "Pick up where you left off": the next lesson, inside its module.
+  function renderNext() {
+    var box = el.homeNext;
+    box.textContent = '';
+    var next = nextUndone();
+    var finishedAll = !next && study.lessons.length > 0;
+    var lesson = next || study.lessons[study.lessons.length - 1];
+    if (!lesson) return;
+    var unit = unitOf(lesson);
+    var lessons = lessonsOf(unit.id);
+    box.className = 'next-card ' + unitTone(unit.id);
+
+    box.appendChild(badge('next-badge', pad2(unit.id)));
+    var body = h('div', 'next-body');
+    body.appendChild(h('p', 'next-kicker', 'Module ' + unit.id + ' · ' + unit.title));
+    body.appendChild(h('h3', 'next-title', finishedAll ? 'Every lesson is done' : lessonNumber(lesson) + ' ' + lesson.title));
+    var simple = h('p', 'next-simple');
+    simple.appendChild(richText(finishedAll ? 'Well done. Review any lesson, or keep practising with the interview questions.' : (lesson.simple || '')));
+    body.appendChild(simple);
+    var progress = h('div', 'next-progress');
+    var inModule = doneCount(lessons);
+    progress.appendChild(track(lessons.length ? inModule / lessons.length : 0));
+    progress.appendChild(h('span', '', inModule + ' of ' + lessons.length + ' lessons done in this module'));
+    body.appendChild(progress);
+    box.appendChild(body);
+
+    var go = finishedAll
+      ? link('btn btn-primary', 'Review the syllabus', '#/syllabus')
+      : link('btn btn-primary', done.size ? 'Continue lesson' : 'Start lesson 1', lessonHref(lesson));
+    box.appendChild(go);
+  }
+
+  function renderStats(lessonsDone, total) {
+    var modulesDone = study.units.filter(function (unit) {
+      var lessons = lessonsOf(unit.id);
+      return lessons.length && doneCount(lessons) === lessons.length;
+    }).length;
+    var tiles = [
+      ['tone-sky', 'Modules complete', modulesDone + ' of ' + study.units.length],
+      ['tone-mint', 'Lessons done', lessonsDone + ' of ' + total],
+      ['tone-peach', 'Interview questions', questionTotal ? String(questionTotal) : '–']
+    ];
+    el.homeStats.textContent = '';
+    tiles.forEach(function (tile) {
+      var box = h('div', 'stat-tile ' + tile[0]);
+      box.appendChild(h('span', 'stat-label', tile[1]));
+      box.appendChild(h('span', 'stat-value', tile[2]));
+      el.homeStats.appendChild(box);
+    });
+  }
+
   function renderHome() {
     var total = study.lessons.length;
     var next = nextUndone();
+    var lessonsDone = doneCount(study.lessons);
 
     if (!done.size && study.lessons[0]) {
       el.homeContinue.textContent = 'Start with lesson 1';
@@ -306,40 +447,43 @@
       el.homeContinue.href = '#/syllabus';
     }
 
-    el.homeProgress.hidden = !done.size || !total;
-    if (done.size && total) {
-      var share = Math.min(1, done.size / total);
-      el.homeProgressText.textContent = done.size + ' of ' + total + ' lessons done';
-      el.homeProgressPercent.textContent = Math.round(share * 100) + '%';
-      if (T.motionOn()) animate(el.homeProgressBar, { scaleX: [0, share] }, { duration: 0.7, ease: T.EASE_OUT });
-      else el.homeProgressBar.style.transform = 'scaleX(' + share + ')';
-    }
+    el.homeCounts.textContent = study.units.length + ' modules · ' + total + ' lessons';
+    el.homeChipModules.textContent = study.units.length + ' modules';
+    el.homeChipQuestions.textContent = questionTotal ? questionTotal + ' interview questions' : 'Interview questions';
+
+    // the ring in the decoration: share of lessons done
+    var share = total ? Math.min(1, lessonsDone / total) : 0;
+    el.homeRingBar.setAttribute('stroke-dasharray', (share * RING).toFixed(1) + ' ' + Math.ceil(RING));
+    // with nothing done, the round line cap would still draw a lone dot
+    el.homeRingBar.style.visibility = share > 0 ? '' : 'hidden';
+    el.homeRingValue.textContent = Math.round(share * 100) + '%';
+    el.homeRingLabel.textContent = lessonsDone + ' of ' + total + ' lessons';
+
+    renderNext();
+    renderStats(lessonsDone, total);
 
     el.homePath.textContent = '';
     var path = figure({
       type: 'flow',
       steps: [
-        { label: '1. Learn', text: 'Read a lesson from the Syllabus. Each one starts in simple words.' },
-        { label: '2. See it', text: 'Study the diagram and the worked example.' },
-        { label: '3. Remember', text: 'Look things up in the Cheat sheet and the Glossary.' },
-        { label: '4. Practise', text: 'Answer the interview questions on the same topic.' }
+        { label: 'Learn', text: 'Read a lesson from the Syllabus. Each one starts in simple words.' },
+        { label: 'See it', text: 'Study the diagram and the worked example.' },
+        { label: 'Remember', text: 'Look things up in the Cheat sheet and the Glossary.' },
+        { label: 'Practise', text: 'Answer the interview questions on the same topic.' }
       ]
     });
     el.homePath.appendChild(path);
 
     el.homeUnits.textContent = '';
-    study.units.forEach(function (unit) {
-      var lessons = lessonsOf(unit.id);
-      if (!lessons.length) return;
-      var finished = lessons.filter(function (lesson) { return done.has(lesson.id); }).length;
-      var target = lessons.find(function (lesson) { return !done.has(lesson.id); }) || lessons[0];
-      var card = link('unit-card', '', lessonHref(target));
-      card.appendChild(h('span', 'unit-num', 'Module ' + unit.id));
-      card.appendChild(h('h3', '', unit.title));
-      card.appendChild(h('p', '', unit.text || ''));
-      card.appendChild(h('span', 'unit-meta',
-        lessons.length + (lessons.length === 1 ? ' lesson' : ' lessons') + (finished ? ' · ' + finished + ' done' : '')));
-      el.homeUnits.appendChild(card);
+    phases().forEach(function (phase, index) {
+      var units = unitsOf(phase).filter(function (unit) { return lessonsOf(unit.id).length; });
+      if (!units.length) return;
+      var group = h('div', 'phase-block');
+      group.appendChild(phaseHead(phase, index, 'h3'));
+      var grid = h('div', 'module-grid');
+      units.forEach(function (unit) { grid.appendChild(moduleCard(unit)); });
+      group.appendChild(grid);
+      el.homeUnits.appendChild(group);
     });
 
     if (questionTotal) el.homeQuestionCount.textContent = questionTotal + ' scenario';
@@ -354,35 +498,53 @@
     el.syllabusLead.textContent = study.lessons.length + ' lessons in ' + study.units.length +
       ' modules. Work through them in order, or jump to the topic you need.';
 
-    study.units.forEach(function (unit) {
-      var lessons = lessonsOf(unit.id).filter(function (lesson) {
-        var defined = list(lesson.definitions).map(function (item) { return item.term + ' ' + item.text; }).join(' ');
-        return !words.length || hasAll(lesson.title + ' ' + defined + ' ' + lesson.simple + ' ' + list(lesson.body).join(' ') + ' ' + unit.title, words);
-      });
-      if (!lessons.length) return;
-      shown += lessons.length;
+    phases().forEach(function (phase, index) {
+      var blocks = [];
+      unitsOf(phase).forEach(function (unit) {
+        var lessons = lessonsOf(unit.id).filter(function (lesson) {
+          var defined = list(lesson.definitions).map(function (item) { return item.term + ' ' + item.text; }).join(' ');
+          return !words.length || hasAll(lesson.title + ' ' + defined + ' ' + lesson.simple + ' ' + list(lesson.body).join(' ') + ' ' + unit.title, words);
+        });
+        if (!lessons.length) return;
+        shown += lessons.length;
 
-      var block = h('section', 'unit-block');
-      block.appendChild(h('h2', '', 'Module ' + unit.id + ': ' + unit.title));
-      if (unit.text) block.appendChild(h('p', '', unit.text));
-      var ul = h('ul', 'lesson-list');
-      lessons.forEach(function (lesson) {
-        var li = h('li');
-        var row = link('lesson-row', '', lessonHref(lesson));
-        row.appendChild(h('span', 'lesson-no', lessonNumber(lesson)));
-        var text = h('span');
-        text.appendChild(h('strong', '', lesson.title));
-        text.appendChild(h('span', 'lesson-simple', lesson.simple));
-        row.appendChild(text);
-        var mark = h('span', 'done-mark' + (done.has(lesson.id) ? ' is-done' : ''));
-        mark.setAttribute('aria-label', done.has(lesson.id) ? 'Done' : 'Not done yet');
-        mark.appendChild(icon('check', 14));
-        row.appendChild(mark);
-        li.appendChild(row);
-        ul.appendChild(li);
+        var block = h('section', 'unit-block ' + unitTone(unit.id));
+        var head = h('div', 'unit-head');
+        head.appendChild(badge('module-badge', pad2(unit.id)));
+        var titles = h('div', 'unit-titles');
+        titles.appendChild(h('h3', '', 'Module ' + unit.id + ': ' + unit.title));
+        if (unit.text) titles.appendChild(h('p', '', unit.text));
+        head.appendChild(titles);
+        var all = lessonsOf(unit.id);
+        head.appendChild(h('span', 'unit-count', doneCount(all) + '/' + all.length));
+        block.appendChild(head);
+
+        var ul = h('ul', 'lesson-list');
+        lessons.forEach(function (lesson) {
+          var li = h('li');
+          var row = link('lesson-row', '', lessonHref(lesson));
+          row.appendChild(h('span', 'lesson-no', lessonNumber(lesson)));
+          var text = h('span');
+          text.appendChild(h('strong', '', lesson.title));
+          text.appendChild(h('span', 'lesson-simple', lesson.simple));
+          row.appendChild(text);
+          var mark = h('span', 'done-mark' + (done.has(lesson.id) ? ' is-done' : ''));
+          mark.setAttribute('aria-label', done.has(lesson.id) ? 'Done' : 'Not done yet');
+          mark.appendChild(icon('check', 14));
+          row.appendChild(mark);
+          li.appendChild(row);
+          ul.appendChild(li);
+        });
+        block.appendChild(ul);
+        blocks.push(block);
       });
-      block.appendChild(ul);
-      el.syllabusList.appendChild(block);
+      if (!blocks.length) return;
+      var group = h('div', 'phase-block');
+      group.appendChild(phaseHead(phase, index, 'h2'));
+      var stack = h('div', 'unit-stack');
+      blocks.forEach(function (block) { stack.appendChild(block); });
+      group.appendChild(stack);
+      el.syllabusList.appendChild(group);
     });
     el.syllabusEmpty.hidden = shown > 0;
   }
@@ -392,7 +554,10 @@
   function renderOutline(active) {
     el.lessonOutline.textContent = '';
     study.units.forEach(function (unit) {
-      el.lessonOutline.appendChild(h('h2', '', 'Module ' + unit.id + ' · ' + unit.title));
+      var heading = h('h2', unitTone(unit.id));
+      heading.appendChild(badge('outline-badge', pad2(unit.id)));
+      heading.appendChild(h('span', '', unit.title));
+      el.lessonOutline.appendChild(heading);
       var ul = h('ul');
       lessonsOf(unit.id).forEach(function (lesson) {
         var li = h('li');
@@ -426,14 +591,24 @@
     var following = study.lessons[index + 1];
     article.textContent = '';
 
+    article.className = 'lesson ' + unitTone(unit.id);
+    var inUnit = lessonsOf(unit.id);
+
+    var head = h('header', 'lesson-head');
     var crumbs = h('p', 'crumbs');
     crumbs.appendChild(link('', 'Syllabus', '#/syllabus'));
     crumbs.appendChild(document.createTextNode(' / Module ' + unit.id + ': ' + unit.title + ' / Lesson ' + lessonNumber(lesson)));
-    article.appendChild(crumbs);
-
+    head.appendChild(crumbs);
+    var headRow = h('div', 'lesson-head-row');
+    headRow.appendChild(badge('lesson-badge', lessonNumber(lesson)));
+    var titles = h('div', 'lesson-titles');
+    titles.appendChild(h('p', 'lesson-kicker', 'Module ' + unit.id + ' · Lesson ' + (inUnit.indexOf(lesson) + 1) + ' of ' + inUnit.length));
     var title = h('h1', '', lesson.title);
     title.tabIndex = -1;
-    article.appendChild(title);
+    titles.appendChild(title);
+    headRow.appendChild(titles);
+    head.appendChild(headRow);
+    article.appendChild(head);
 
     if (list(lesson.definitions).length) {
       var defs = h('section', 'definitions');
@@ -693,7 +868,8 @@
 
     var view = views[route.view];
     if (!firstRoute) {
-      window.scrollTo(0, 0);
+      // jump, rather than glide up through the page that is being replaced
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       var heading = view.querySelector('h1');
       if (heading && heading.focus) heading.focus({ preventScroll: true });
     }
@@ -764,6 +940,7 @@
   loadStudy()
     .then(function (data) {
       study.units = list(data.units);
+      study.phases = list(data.phases);
       study.lessons = list(data.lessons);
       study.cheatsheet = list(data.cheatsheet);
       study.glossary = list(data.glossary);

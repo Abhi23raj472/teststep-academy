@@ -131,6 +131,50 @@
       "text": "Moving to a new Tosca version safely."
     }
   ],
+  "phases": [
+    {
+      "title": "Foundations",
+      "from": 1,
+      "to": 3,
+      "tone": "sky",
+      "text": "What Tosca is, the workspace, and how its sections fit together."
+    },
+    {
+      "title": "Building blocks",
+      "from": 4,
+      "to": 8,
+      "tone": "lilac",
+      "text": "Scanning, standard modules, TestCases, expressions and reuse."
+    },
+    {
+      "title": "Running tests",
+      "from": 9,
+      "to": 12,
+      "tone": "mint",
+      "text": "Waiting and recovery, configurations, execution and reporting."
+    },
+    {
+      "title": "Data and technology",
+      "from": 13,
+      "to": 16,
+      "tone": "peach",
+      "text": "Test design, test data, every engine and APIs."
+    },
+    {
+      "title": "Scale and administration",
+      "from": 17,
+      "to": 21,
+      "tone": "lemon",
+      "text": "Many machines, pipelines, administration, integrations and AI."
+    },
+    {
+      "title": "Mastery",
+      "from": 22,
+      "to": 26,
+      "tone": "pink",
+      "text": "Best practices, debugging, exploration, performance and upgrades."
+    }
+  ],
   "lessons": [
     {
       "id": "testing-basics",
