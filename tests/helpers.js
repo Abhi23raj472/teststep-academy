@@ -9,7 +9,7 @@ const questions = JSON.parse(fs.readFileSync(path.join(ROOT, 'questions.json'), 
 
 const lessonIds = new Set(study.lessons.map((lesson) => lesson.id));
 const topics = new Set(questions.map((q) => q.topic));
-const VIEWS = new Set(['home', 'syllabus', 'interview', 'cheatsheet', 'glossary']);
+const VIEWS = new Set(['home', 'syllabus', 'interview', 'mock', 'cheatsheet', 'glossary']);
 
 // Every web address the site can link to: each "url" in the two data files,
 // plus the Google Fonts stylesheet in index.html.

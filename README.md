@@ -14,6 +14,11 @@ Study material for Tricentis Tosca in one small website:
   points, a common mistake and links to the Tricentis manual.
 - **Interview preparation** holds the scenario-based interview questions, each
   with a step-by-step approach, the exact syntax, a short answer and its source.
+- **Mock interview** is a practice interview: an AI interviewer reads questions
+  aloud, you answer by speaking or typing, and every answer gets a score out of
+  10 with what was good, what to improve and a stronger answer. It ends with a
+  scorecard and the lessons to revise. It needs your own Anthropic API key (see
+  "Mock interview" below).
 - **Cheat sheet** lists the expressions and settings you type most often.
 - **Glossary** explains Tosca terms from A to Z.
 
@@ -29,6 +34,7 @@ and glossary in `study.json`.
 | `theme.js` | Sets the light or dark theme before the page is drawn |
 | `script.js` | The Interview preparation page |
 | `site.js` | Navigation, Home, Syllabus, lessons, Cheat sheet and Glossary |
+| `mock.js` | The Mock interview page |
 | `vendor/motion.js` | Animation library (see "Design and animation") |
 | `questions.json` | All interview questions |
 | `study.json` | Modules, lessons, cheat sheet and glossary. Edited by hand |
@@ -84,6 +90,36 @@ The menu at the top switches between the pages. Each page has its own address
   has a Copy button.
 - Progress, bookmarks and the dark-mode choice are saved in your browser. No login.
 
+## Mock interview
+
+This is the test version, meant for trying the idea yourself.
+
+- **What you need:** Chrome, Edge or Safari for voice answers (other browsers
+  can type), a microphone, and an Anthropic API key with credit. You can create
+  a key in the [Anthropic Console](https://console.anthropic.com/).
+- **How it works:** questions come from `questions.json`, filtered by the topic
+  and level you choose. The browser reads each question aloud with its own
+  voices and turns your spoken answer into text with its own speech service.
+  The text of your answer, the question and its reference answer go to Claude,
+  which returns a score for correct facts, approach, structure and Tosca terms.
+  With follow-ups on, Claude may ask one follow-up question about an answer;
+  it takes the place of the last question not asked yet, so the length stays as
+  chosen. At the end, one more request writes the summary on the scorecard.
+- **Your key:** it is typed into the page and sent only to `api.anthropic.com`,
+  straight from your browser. It is never part of this repository. On
+  `*.github.io` you can tick "Remember on this device" to keep it in that
+  browser; on other addresses, such as a preview link, it is kept only until
+  you leave the page. The Content-Security-Policy allows no other address.
+- **Cost:** one small request checks the key when you press Start, each rated
+  answer is one request, and the scorecard is one more. Requests are billed to
+  your key. Sonnet is the default rating model; Haiku is cheaper and faster.
+- **Kept in your browser:** your settings and a short list of past interviews.
+  Recordings of your voice are not kept.
+
+To open it to other people without their own key, the rating would move to a
+small server that holds one key, signs people in and limits how many
+interviews each person runs.
+
 ## Design and animation
 
 The look is called "Soft clay". It mixes two styles:
@@ -134,6 +170,9 @@ no errors and no broken links:
   inline style or script), or a file of the site that does not load. It also
   checks every link inside the site: each lesson, page, interview topic and
   `#id` it points to must exist.
+- `tests/mock.spec.js` runs a whole mock interview with typed answers: rating,
+  a follow-up, a skipped question, the scorecard and a rejected key. The tests
+  answer for the Anthropic API themselves, so they need no key and cost nothing.
 - `tests/links.spec.js` checks every link to another website, one test per
   address: the Tricentis manual pages, the YouTube videos and Google Fonts. A
   link fails when it answers with an error or shows a "not found" page.
@@ -162,7 +201,7 @@ is attached to the run.
 ## Security
 
 - The page carries a Content-Security-Policy: only this site's own script files
-  may run, and styles and fonts may come only from this site and Google Fonts.
+  may run, and styles and fonts may come only from this site and Google Fonts, and the page may send data only to this site and, for the mock interview, to `api.anthropic.com`.
   For that reason the page has no inline scripts, inline event handlers or
   `style` attributes; keep it that way when you edit `index.html`.
 - All text from `questions.json` and `study.json` is inserted as text, never as
