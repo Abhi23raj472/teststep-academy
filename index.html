@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Only this site's own files may run as script; styles and fonts may also come from Google Fonts. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+  <!-- Only this site's own files may run as script; styles and fonts may also come from Google Fonts.
+       The mock interview may also call the Anthropic API, with the visitor's own key. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.anthropic.com; base-uri 'none'; form-action 'none'">
   <title>TestStep Academy</title>
   <meta name="description" content="Study material for Tricentis Tosca: a full syllabus in simple words with diagrams and examples, plus scenario-based interview questions.">
   <meta name="color-scheme" content="light dark">
@@ -41,6 +42,7 @@
           <div class="mega" id="syllabusMenu" aria-label="Syllabus topics"></div>
         </div>
         <a class="nav-link" href="#/interview" data-route="interview">Interview preparation</a>
+        <a class="nav-link" href="#/mock" data-route="mock">Mock interview</a>
         <a class="nav-link" href="#/cheatsheet" data-route="cheatsheet">Cheat sheet</a>
         <a class="nav-link" href="#/glossary" data-route="glossary">Glossary</a>
       </nav>
@@ -236,6 +238,300 @@
       </div>
     </section>
 
+    <!-- Mock interview: an AI interviewer asks questions aloud and rates each answer -->
+    <section class="view" id="view-mock" hidden>
+
+      <!-- 1. Set up -->
+      <div class="mock-screen" id="mockSetup">
+        <div class="wrap page-head mock-head">
+          <p class="eyebrow-pill"><span class="pill-new tone-lilac">New</span>Mock interview</p>
+          <h1 tabindex="-1">Practise a real Tosca interview, out loud.</h1>
+          <p class="lead">An AI interviewer asks you questions by voice. You answer by speaking, and after every answer you get a score and clear tips on what to improve.</p>
+          <ol class="mock-steps">
+            <li><span class="mock-step-no tone-sky" aria-hidden="true">1</span><span><strong>Listen</strong>The interviewer reads each question aloud.</span></li>
+            <li><span class="mock-step-no tone-lilac" aria-hidden="true">2</span><span><strong>Answer</strong>Speak your answer. It is written out as you talk.</span></li>
+            <li><span class="mock-step-no tone-mint" aria-hidden="true">3</span><span><strong>Get rated</strong>A score out of 10, what was good and what to improve.</span></li>
+            <li><span class="mock-step-no tone-peach" aria-hidden="true">4</span><span><strong>Review</strong>A scorecard at the end, with the lessons to revise.</span></li>
+          </ol>
+        </div>
+
+        <div class="wrap mock-setup">
+          <form class="mock-card mock-options" id="mockOptions" aria-label="Interview options" novalidate>
+            <fieldset class="mock-field">
+              <legend>Topic</legend>
+              <div class="mock-topics" id="mockTopics"></div>
+            </fieldset>
+
+            <fieldset class="mock-field">
+              <legend>Level</legend>
+              <div class="segmented" id="mockLevel" role="radiogroup" aria-label="Level">
+                <button type="button" role="radio" aria-checked="false" data-value="Beginner"><span class="dot dot-beginner"></span>Beginner</button>
+                <button type="button" role="radio" aria-checked="true" data-value="Intermediate"><span class="dot dot-intermediate"></span>Intermediate</button>
+                <button type="button" role="radio" aria-checked="false" data-value="Advanced"><span class="dot dot-advanced"></span>Advanced</button>
+                <button type="button" role="radio" aria-checked="false" data-value="">Mixed</button>
+              </div>
+            </fieldset>
+
+            <div class="mock-row">
+              <fieldset class="mock-field">
+                <legend>Questions</legend>
+                <div class="segmented" id="mockCount" role="radiogroup" aria-label="Number of questions">
+                  <button type="button" role="radio" aria-checked="false" data-value="3">3</button>
+                  <button type="button" role="radio" aria-checked="true" data-value="5">5</button>
+                  <button type="button" role="radio" aria-checked="false" data-value="8">8</button>
+                </div>
+                <p class="mock-hint" id="mockCountHint">About 15 minutes</p>
+              </fieldset>
+              <fieldset class="mock-field">
+                <legend>Answer by</legend>
+                <div class="segmented" id="mockMode" role="radiogroup" aria-label="Answer by">
+                  <button type="button" role="radio" aria-checked="true" data-value="voice">Speaking</button>
+                  <button type="button" role="radio" aria-checked="false" data-value="text">Typing</button>
+                </div>
+                <p class="mock-hint" id="mockModeHint">You can switch during the interview</p>
+              </fieldset>
+            </div>
+
+            <button class="switch-row mock-switch" id="mockFollowUps" type="button" role="switch" aria-checked="true">
+              <span class="switch-label mock-switch-text">
+                <strong>Follow-up questions</strong>
+                <span>The interviewer may dig deeper into your answer, as in a real interview.</span>
+              </span>
+              <span class="switch" aria-hidden="true"><span class="knob"></span></span>
+            </button>
+          </form>
+
+          <aside class="mock-side">
+            <section class="mock-card" aria-labelledby="mockMicTitle">
+              <div class="mock-card-head">
+                <span class="mock-icon tone-mint" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span>
+                <div>
+                  <h2 id="mockMicTitle">Check your microphone</h2>
+                  <p>Press Test, then say a few words. The bars should move.</p>
+                </div>
+              </div>
+              <div class="mock-meter" id="mockMeter" aria-hidden="true"></div>
+              <div class="mock-mic-row">
+                <button class="btn" id="mockMicTest" type="button">Test microphone</button>
+                <p class="mock-mic-status" id="mockMicStatus" role="status"></p>
+              </div>
+              <label class="mock-label" for="mockLang">The English you speak</label>
+              <select class="mock-select" id="mockLang">
+                <option value="en-IN">English (India)</option>
+                <option value="en-US">English (US)</option>
+                <option value="en-GB">English (UK)</option>
+              </select>
+              <p class="mock-hint">Your browser turns your speech into text with its own speech service.</p>
+            </section>
+
+            <section class="mock-card" aria-labelledby="mockVoiceTitle">
+              <h2 id="mockVoiceTitle">Interviewer voice</h2>
+              <label class="visually-hidden" for="mockVoice">Voice</label>
+              <div class="mock-voice-row">
+                <select class="mock-select" id="mockVoice"></select>
+                <button class="btn" id="mockVoiceSample" type="button">Play sample</button>
+              </div>
+              <p class="mock-label" id="mockRateLabel">Speaking speed</p>
+              <div class="segmented" id="mockRate" role="radiogroup" aria-labelledby="mockRateLabel">
+                <button type="button" role="radio" aria-checked="false" data-value="0.85">Slower</button>
+                <button type="button" role="radio" aria-checked="true" data-value="1">Normal</button>
+                <button type="button" role="radio" aria-checked="false" data-value="1.15">Faster</button>
+              </div>
+            </section>
+
+            <section class="mock-card" aria-labelledby="mockKeyTitle">
+              <h2 id="mockKeyTitle">AI rating</h2>
+              <p class="mock-note">Answers are rated by Claude through your own Anthropic API key. The key goes straight from this browser to Anthropic and is never sent to GitHub.</p>
+              <label class="mock-label" for="mockKey">Your Anthropic API key</label>
+              <div class="mock-key-row">
+                <input class="mock-input" id="mockKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-...">
+                <button class="btn" id="mockKeyForget" type="button" hidden>Forget</button>
+              </div>
+              <label class="mock-check" id="mockRememberRow" hidden><input type="checkbox" id="mockRemember"> Remember on this device</label>
+              <label class="mock-label" for="mockModel">Rating model</label>
+              <select class="mock-select" id="mockModel">
+                <option value="claude-sonnet-5-5">Claude Sonnet 5.5 (balanced)</option>
+                <option value="claude-haiku-5-5">Claude Haiku 5.5 (faster, cheaper)</option>
+                <option value="claude-opus-5-5">Claude Opus 5.5 (most thorough)</option>
+              </select>
+              <p class="mock-error" id="mockKeyError" role="alert" hidden></p>
+            </section>
+
+            <button class="btn btn-primary btn-lg mock-start" id="mockStart" type="button">Start interview</button>
+            <p class="mock-hint mock-center" id="mockSupport">Voice answers work in Chrome, Edge and Safari. In other browsers you can type.</p>
+          </aside>
+        </div>
+
+        <div class="wrap section mock-history" id="mockHistoryBlock" hidden>
+          <h2 class="section-title">Your past interviews</h2>
+          <ul class="mock-history-list" id="mockHistory"></ul>
+        </div>
+      </div>
+
+      <!-- 2. A question -->
+      <div class="mock-screen" id="mockLive" hidden>
+        <div class="wrap mock-bar">
+          <div class="mock-bar-title">
+            <strong>Mock interview</strong>
+            <span id="mockBarMeta"></span>
+          </div>
+          <ol class="mock-progress" id="mockProgress" aria-label="Progress"></ol>
+          <span class="mock-clock"><span class="visually-hidden">Time so far </span><span id="mockClock">00:00</span></span>
+          <button class="btn mock-end" id="mockEnd" type="button">End interview</button>
+        </div>
+
+        <div class="wrap mock-live">
+          <section class="mock-card mock-stage" aria-labelledby="mockQuestion">
+            <div class="mock-stage-top">
+              <span class="mock-topic-chip" id="mockTopicChip"></span>
+              <span class="tag" id="mockLevelChip"></span>
+              <span class="mock-count" id="mockQCount"></span>
+            </div>
+            <div class="mock-orb" id="mockOrb" aria-hidden="true">
+              <span class="mock-orb-disc"></span>
+              <span class="mock-orb-well"></span>
+              <span class="mock-orb-core">
+                <svg viewBox="0 0 48 48" width="64" height="64"><rect x="8" y="19" width="4.5" height="10" rx="2.25"/><rect x="15.5" y="13" width="4.5" height="22" rx="2.25"/><rect x="23" y="8" width="4.5" height="32" rx="2.25"/><rect x="30.5" y="15" width="4.5" height="18" rx="2.25"/><rect x="38" y="20" width="4.5" height="8" rx="2.25"/></svg>
+              </span>
+            </div>
+            <p class="mock-status" id="mockStatus" role="status" aria-live="polite"></p>
+            <h1 class="mock-question" id="mockQuestion" tabindex="-1"></h1>
+            <div class="mock-stage-actions">
+              <button class="btn" id="mockRepeat" type="button">Repeat question</button>
+              <button class="btn" id="mockHideText" type="button" aria-pressed="false">Hide question text</button>
+            </div>
+          </section>
+
+          <section class="mock-card mock-answer" aria-labelledby="mockAnswerTitle">
+            <div class="mock-answer-head">
+              <h2 id="mockAnswerTitle">Your answer</h2>
+              <span class="mock-level" id="mockLevelBars" aria-hidden="true"></span>
+              <span class="mock-answer-time"><span id="mockAnswerClock">0:00</span> <span class="mock-muted">/ aim for 2:00</span></span>
+            </div>
+            <label class="visually-hidden" for="mockAnswer">Your answer</label>
+            <textarea class="mock-transcript" id="mockAnswer" rows="8" spellcheck="true" placeholder="Your words appear here as you speak."></textarea>
+            <p class="mock-hint" id="mockAnswerHint">Written out as you speak. Pause to fix a word before you send.</p>
+            <p class="mock-error" id="mockLiveError" role="alert" hidden></p>
+            <div class="mock-tools">
+              <button class="btn" id="mockPause" type="button">Pause</button>
+              <button class="btn" id="mockSwitchMode" type="button">Type instead</button>
+              <button class="btn" id="mockRestart" type="button">Start over</button>
+            </div>
+            <button class="btn btn-primary btn-lg mock-done" id="mockDone" type="button">Done, rate my answer</button>
+            <button class="text-btn mock-skip" id="mockSkip" type="button">Skip this question</button>
+          </section>
+        </div>
+      </div>
+
+      <!-- 3. The rating of one answer -->
+      <div class="mock-screen" id="mockFeedback" hidden>
+        <div class="wrap mock-narrow">
+          <section class="mock-card mock-verdict" aria-labelledby="mockVerdict">
+            <div class="mock-score" id="mockScore" role="img"></div>
+            <div class="mock-verdict-text">
+              <p class="mock-kicker" id="mockFeedbackKicker"></p>
+              <h1 id="mockVerdict" tabindex="-1"></h1>
+              <p class="mock-muted" id="mockFeedbackQuestion"></p>
+            </div>
+            <button class="btn" id="mockHearFeedback" type="button">Hear the feedback</button>
+          </section>
+
+          <section aria-labelledby="mockCritTitle">
+            <h2 class="section-title" id="mockCritTitle">How the answer was scored</h2>
+            <ul class="mock-criteria" id="mockCriteria"></ul>
+          </section>
+
+          <div class="mock-two">
+            <section class="mock-clay tone-mint" aria-labelledby="mockGoodTitle">
+              <h2 id="mockGoodTitle">What you did well</h2>
+              <ul class="mock-list" id="mockGood"></ul>
+            </section>
+            <section class="mock-clay tone-peach" aria-labelledby="mockImproveTitle">
+              <h2 id="mockImproveTitle">What to improve</h2>
+              <ul class="mock-list" id="mockImprove"></ul>
+            </section>
+          </div>
+
+          <section class="simple-box mock-better" aria-labelledby="mockBetterTitle">
+            <div class="mock-better-head">
+              <h2 class="details-title" id="mockBetterTitle">A stronger answer</h2>
+              <button class="btn mock-listen" id="mockHearBetter" type="button">Listen</button>
+            </div>
+            <p id="mockBetter"></p>
+          </section>
+
+          <section class="mock-card" id="mockSyntaxBlock" aria-labelledby="mockSyntaxTitle">
+            <h2 class="mock-card-title" id="mockSyntaxTitle">Syntax worth mentioning</h2>
+            <div class="mock-syntax" id="mockSyntax"></div>
+          </section>
+
+          <details class="mock-said">
+            <summary>What you said</summary>
+            <p id="mockSaid"></p>
+          </details>
+
+          <nav class="mock-next" aria-label="What next">
+            <button class="btn" id="mockAgain" type="button">Answer again</button>
+            <a class="btn" id="mockRevise" href="#/syllabus" hidden></a>
+            <button class="btn btn-primary btn-lg mock-next-btn" id="mockNext" type="button">
+              <span id="mockNextLabel">Next question</span>
+              <span class="mock-next-sub" id="mockNextSub"></span>
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- 4. Scorecard -->
+      <div class="mock-screen" id="mockSummary" hidden>
+        <div class="wrap mock-summary">
+          <section class="mock-card mock-result" aria-labelledby="mockResultTitle">
+            <div class="mock-ring" aria-hidden="true">
+              <span class="mock-orb-disc"></span>
+              <span class="mock-orb-well"></span>
+              <svg viewBox="0 0 230 230" width="230" height="230">
+                <circle class="mock-ring-bar" id="mockRingBar" cx="115" cy="115" r="82" stroke-dasharray="0 516" transform="rotate(-90 115 115)"/>
+                <text class="hero-ring-value" id="mockRingValue" x="115" y="118" text-anchor="middle">0%</text>
+                <text class="hero-ring-label" x="115" y="146" text-anchor="middle">overall</text>
+              </svg>
+            </div>
+            <div class="mock-result-text">
+              <p class="mock-kicker" id="mockResultDate"></p>
+              <h1 id="mockResultTitle" tabindex="-1"></h1>
+              <p class="lead" id="mockResultSummary"></p>
+              <ul class="mock-chips" id="mockResultChips" aria-label="About this interview"></ul>
+            </div>
+            <div class="stat-tiles mock-tiles" id="mockTiles"></div>
+          </section>
+
+          <section aria-labelledby="mockQTitle">
+            <h2 class="section-title" id="mockQTitle">Question by question</h2>
+            <ol class="mock-qlist" id="mockQList"></ol>
+          </section>
+
+          <div class="mock-two">
+            <section class="mock-clay tone-mint" aria-labelledby="mockStrongTitle">
+              <h2 id="mockStrongTitle">Your strengths</h2>
+              <ul class="mock-list" id="mockStrengths"></ul>
+            </section>
+            <section class="mock-clay tone-peach" aria-labelledby="mockWorkTitle">
+              <h2 id="mockWorkTitle">Work on these</h2>
+              <ul class="mock-list" id="mockWork"></ul>
+            </section>
+          </div>
+
+          <section aria-labelledby="mockReviseTitle">
+            <h2 class="section-title" id="mockReviseTitle">Revise before your next try</h2>
+            <ul class="mock-revise" id="mockReviseList"></ul>
+          </section>
+
+          <nav class="mock-next" aria-label="What next">
+            <a class="btn" href="#/interview">Interview preparation</a>
+            <button class="btn btn-primary btn-lg mock-next-btn" id="mockAnother" type="button">Start another interview</button>
+          </nav>
+        </div>
+      </div>
+    </section>
+
     <!-- Cheat sheet -->
     <section class="view" id="view-cheatsheet" hidden>
       <div class="wrap page-head">
@@ -293,5 +589,6 @@
   <script src="vendor/motion.js"></script>
   <script src="script.js"></script>
   <script src="site.js"></script>
+  <script src="mock.js"></script>
 </body>
 </html>

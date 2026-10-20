@@ -10,8 +10,8 @@
   var h = T.h, icon = T.icon, richText = T.richText, safeUrl = T.safeUrl, animate = T.animate;
 
   var DONE_KEY = 'tsh.done';
-  var VIEWS = ['home', 'syllabus', 'lesson', 'interview', 'cheatsheet', 'glossary'];
-  var TITLES = { syllabus: 'Syllabus', interview: 'Interview preparation', cheatsheet: 'Cheat sheet', glossary: 'Glossary' };
+  var VIEWS = ['home', 'syllabus', 'lesson', 'interview', 'mock', 'cheatsheet', 'glossary'];
+  var TITLES = { syllabus: 'Syllabus', interview: 'Interview preparation', mock: 'Mock interview', cheatsheet: 'Cheat sheet', glossary: 'Glossary' };
   var SITE = 'TestStep Academy';
 
   var study = { units: [], phases: [], lessons: [], cheatsheet: [], glossary: [] };
@@ -860,8 +860,11 @@
     else if (route.view === 'syllabus') renderSyllabus();
     else if (route.view === 'lesson') renderLesson(lesson);
     else if (route.view === 'interview') T.interview.show(route.topic);
+    else if (route.view === 'mock' && T.mock) T.mock.show();
     else if (route.view === 'cheatsheet') renderCheatsheet();
     else if (route.view === 'glossary') renderGlossary();
+    // leaving the mock interview stops the interviewer's voice and the microphone
+    if (route.view !== 'mock' && T.mock) T.mock.leave();
 
     document.title = lesson ? lesson.title + ' - ' + SITE
       : (TITLES[route.view] ? TITLES[route.view] + ' - ' + SITE : SITE);
@@ -925,6 +928,14 @@
   el.syllabusSearch.addEventListener('input', renderSyllabus);
   el.cheatSearch.addEventListener('input', renderCheatsheet);
   el.glossarySearch.addEventListener('input', renderGlossary);
+
+  // Shared with mock.js, which links weak answers to the lessons to revise.
+  T.site = {
+    lessons: function () { return study.lessons; },
+    lessonNumber: lessonNumber,
+    lessonHref: lessonHref,
+    unitTone: unitTone
+  };
 
   // ---------- start ----------
 
