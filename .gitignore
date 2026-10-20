@@ -3,3 +3,6 @@
 questions.json.tmp
 __pycache__/
 .claude/
+node_modules/
+test-results/
+playwright-report/

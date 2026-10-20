@@ -1,0 +1,13 @@
+{
+  "name": "teststep-academy",
+  "private": true,
+  "description": "Tests for the TestStep Academy site. The site itself needs no build step.",
+  "scripts": {
+    "test": "playwright test",
+    "test:pages": "playwright test tests/pages.spec.js",
+    "test:links": "playwright test tests/links.spec.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}
