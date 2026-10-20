@@ -2,7 +2,8 @@
 
 Study material for Tricentis Tosca in one small website:
 
-- **Home** explains how to use the site and shows your progress.
+- **Home** shows your progress, the next lesson to open, how to use the site
+  and the whole learning path in six phases.
 - **Syllabus** covers Tosca from scratch in 62 lessons, grouped into 26 modules:
   from an introduction and the workspace, through Modules, TestCases, dynamic
   expressions, test data, technology engines, API testing and execution, to
@@ -83,15 +84,32 @@ The menu at the top switches between the pages. Each page has its own address
 
 ## Design and animation
 
-The look is plain and typographic: a white page, ink-coloured text, thin rules
-instead of boxes and shadows, and one accent colour that is used only for links
-and keyboard focus. A single bar across the top holds the menu, and lessons and
-the interview page have a sidebar next to the content (it moves out of the way
-on tablets and phones). The diagrams in the lessons are drawn from the lesson
-data with HTML and CSS, so they follow the light and the dark theme. Text is set
-in IBM Plex Sans and Tosca expressions such as `{B[Name]}` in IBM Plex Mono;
-both come from Google Fonts, and the page falls back to system fonts when
-offline.
+The look is called "Soft clay". It mixes two styles:
+
+- **Neumorphism** for structure. Panels, cards, the menu bar and the sidebars
+  are made of the page's own colour and seem raised out of it (a light shadow
+  at the top left, a darker one at the bottom right). Search fields, progress
+  tracks, code snippets and the selected menu item are pressed into the page
+  with the same shadows on the inside.
+- **Claymorphism** for anything to act on or notice. Buttons, module numbers,
+  phase labels, the "In simple words" box, key-point ticks, the common mistake
+  and the short interview answer are puffy pastel shapes with a soft coloured
+  shadow and an inner highlight.
+
+The 26 modules are grouped into six phases, and each phase has its own clay
+colour (sky, lilac, mint, peach, lemon and pink) that carries through the Home
+page, the Syllabus, the menu and the lesson pages. The phases are defined in
+`study.json` (see "Editing the study content"). The main action colour is
+indigo, and every pastel shape uses dark text on a light colour, so text keeps
+a high contrast in both themes. The dark theme uses the same shapes on a
+charcoal surface. Text is set in Nunito and Tosca expressions such as
+`{B[Name]}` in JetBrains Mono; both come from Google Fonts, and the page falls
+back to system fonts when offline.
+
+The diagrams in the lessons are drawn from the lesson data with HTML and CSS,
+so they follow the light and the dark theme. Lessons and the interview page
+have a sidebar next to the content; it moves out of the way on tablets and
+phones.
 
 Animation is kept to what helps: a question opening and closing, the progress
 bar and a short fade between pages. It uses [Motion](https://motion.dev), the
@@ -119,11 +137,23 @@ and animation is switched off for visitors whose system asks for reduced motion.
 
 ## Editing the study content
 
-`study.json` has four parts: `units`, `lessons`, `cheatsheet` and `glossary`.
-The site shows each entry of `units` as a module (Module 1 to Module 26), and a
-lesson's `unit` field holds the number of its module. Lessons appear, and
-Previous/Next moves through them, in the order of the `lessons` list, so keep
-that list sorted by module. A lesson looks like this:
+`study.json` has five parts: `units`, `phases`, `lessons`, `cheatsheet` and
+`glossary`. The site shows each entry of `units` as a module (Module 1 to
+Module 26), and a lesson's `unit` field holds the number of its module.
+
+`phases` groups the modules for the Home page and the Syllabus, and gives each
+group its colour:
+
+```json
+{ "title": "Foundations", "from": 1, "to": 3, "tone": "sky",
+  "text": "What Tosca is, the workspace, and how its sections fit together." }
+```
+
+`from` and `to` are module numbers, and `tone` is one of `sky`, `lilac`, `mint`,
+`peach`, `lemon` or `pink`. Without `phases`, all modules are shown as one group.
+
+Lessons appear, and Previous/Next moves through them, in the order of the
+`lessons` list, so keep that list sorted by module. A lesson looks like this:
 
 ```json
 {
@@ -156,8 +186,8 @@ that list sorted by module. A lesson looks like this:
 - `definitions` lists the key terms of the lesson, each with a formal
   definition. They are shown first on the lesson page, and the syllabus search
   covers them. `simple` says the same idea in everyday language.
-- `graphics` is a list of diagrams. The types are `flow` (steps joined by
-  arrows), `tree` (a root with children), `compare` (columns side by side),
+- `graphics` is a list of diagrams. The types are `flow` (numbered steps
+  joined by a track), `tree` (a root with children), `compare` (columns side by side),
   `stack` (a ranked list) and `grid` (a table).
 - An `example` can have a `grid`, a list of `code` snippets, or both.
 - `questions` names a topic from `questions.json`. The lesson then shows a
