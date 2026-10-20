@@ -1277,7 +1277,7 @@ a.btn.btn-primary {
 
 .unit-card {
   display: grid;
-  grid-template-columns: 4.25rem minmax(0, 1fr) auto;
+  grid-template-columns: 5.25rem minmax(0, 1fr) auto;
   column-gap: 8px;
   align-items: baseline;
   align-content: start;
@@ -1289,6 +1289,7 @@ a.btn.btn-primary {
 
 .unit-num {
   font-size: 0.875rem;
+  white-space: nowrap;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
@@ -2155,7 +2156,7 @@ a.btn.btn-primary {
   }
 
   .unit-card {
-    grid-template-columns: 3.75rem minmax(0, 1fr);
+    grid-template-columns: 4.75rem minmax(0, 1fr);
   }
 
   .unit-meta {
