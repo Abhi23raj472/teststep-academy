@@ -3,10 +3,12 @@
 Study material for Tricentis Tosca in one small website:
 
 - **Home** explains how to use the site and shows your progress.
-- **Syllabus** covers Tosca from scratch in 47 lessons, grouped into 10 units:
-  from testing basics and installation, through Modules, TestCases, test data
-  and execution, to administration, data integrity, performance testing and
-  certifications. Every lesson has formal definitions of its key terms, the
+- **Syllabus** covers Tosca from scratch in 62 lessons, grouped into 26 modules:
+  from an introduction and the workspace, through Modules, TestCases, dynamic
+  expressions, test data, technology engines, API testing and execution, to
+  administration, integrations, AI in Tosca, best practices, debugging,
+  exploratory testing, performance and data testing, and upgrades. Every lesson
+  has formal definitions of its key terms, the
   same idea in simple words, an explanation, a diagram, a worked example, key
   points, a common mistake and links to the Tricentis manual.
 - **Interview preparation** holds the scenario-based interview questions, each
@@ -28,7 +30,7 @@ and glossary in `study.json`.
 | `site.js` | Navigation, Home, Syllabus, lessons, Cheat sheet and Glossary |
 | `vendor/motion.js` | Animation library (see "Design and animation") |
 | `questions.json` | All interview questions |
-| `study.json` | Units, lessons, cheat sheet and glossary. Edited by hand |
+| `study.json` | Modules, lessons, cheat sheet and glossary. Edited by hand |
 | `questions.js`, `study.js` | Generated copies of the two `.json` files (see "Opening the site" below) |
 | `fetch_questions.py` | Collects new questions from YouTube and web pages |
 | `urls.txt` | Your list of public blog and forum pages to read |
@@ -118,7 +120,10 @@ and animation is switched off for visitors whose system asks for reduced motion.
 ## Editing the study content
 
 `study.json` has four parts: `units`, `lessons`, `cheatsheet` and `glossary`.
-A lesson looks like this:
+The site shows each entry of `units` as a module (Module 1 to Module 26), and a
+lesson's `unit` field holds the number of its module. Lessons appear, and
+Previous/Next moves through them, in the order of the `lessons` list, so keep
+that list sorted by module. A lesson looks like this:
 
 ```json
 {
