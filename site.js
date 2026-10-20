@@ -256,7 +256,7 @@
     el.syllabusMenu.textContent = '';
     study.units.forEach(function (unit) {
       var box = h('div', 'mega-unit');
-      box.appendChild(h('h3', '', 'Unit ' + unit.id + ' · ' + unit.title));
+      box.appendChild(h('h3', '', 'Module ' + unit.id + ' · ' + unit.title));
       var ul = h('ul');
       lessonsOf(unit.id).forEach(function (lesson) {
         var li = h('li');
@@ -334,7 +334,7 @@
       var finished = lessons.filter(function (lesson) { return done.has(lesson.id); }).length;
       var target = lessons.find(function (lesson) { return !done.has(lesson.id); }) || lessons[0];
       var card = link('unit-card', '', lessonHref(target));
-      card.appendChild(h('span', 'unit-num', 'Unit ' + unit.id));
+      card.appendChild(h('span', 'unit-num', 'Module ' + unit.id));
       card.appendChild(h('h3', '', unit.title));
       card.appendChild(h('p', '', unit.text || ''));
       card.appendChild(h('span', 'unit-meta',
@@ -352,7 +352,7 @@
     var shown = 0;
     el.syllabusList.textContent = '';
     el.syllabusLead.textContent = study.lessons.length + ' lessons in ' + study.units.length +
-      ' units. Work through them in order, or jump to the topic you need.';
+      ' modules. Work through them in order, or jump to the topic you need.';
 
     study.units.forEach(function (unit) {
       var lessons = lessonsOf(unit.id).filter(function (lesson) {
@@ -363,7 +363,7 @@
       shown += lessons.length;
 
       var block = h('section', 'unit-block');
-      block.appendChild(h('h2', '', 'Unit ' + unit.id + ': ' + unit.title));
+      block.appendChild(h('h2', '', 'Module ' + unit.id + ': ' + unit.title));
       if (unit.text) block.appendChild(h('p', '', unit.text));
       var ul = h('ul', 'lesson-list');
       lessons.forEach(function (lesson) {
@@ -392,7 +392,7 @@
   function renderOutline(active) {
     el.lessonOutline.textContent = '';
     study.units.forEach(function (unit) {
-      el.lessonOutline.appendChild(h('h2', '', 'Unit ' + unit.id + ' · ' + unit.title));
+      el.lessonOutline.appendChild(h('h2', '', 'Module ' + unit.id + ' · ' + unit.title));
       var ul = h('ul');
       lessonsOf(unit.id).forEach(function (lesson) {
         var li = h('li');
@@ -428,7 +428,7 @@
 
     var crumbs = h('p', 'crumbs');
     crumbs.appendChild(link('', 'Syllabus', '#/syllabus'));
-    crumbs.appendChild(document.createTextNode(' / Unit ' + unit.id + ': ' + unit.title + ' / Lesson ' + lessonNumber(lesson)));
+    crumbs.appendChild(document.createTextNode(' / Module ' + unit.id + ': ' + unit.title + ' / Lesson ' + lessonNumber(lesson)));
     article.appendChild(crumbs);
 
     var title = h('h1', '', lesson.title);
