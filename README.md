@@ -35,6 +35,8 @@ and glossary in `study.json`.
 | `script.js` | The Interview preparation page |
 | `site.js` | Navigation, Home, Syllabus, lessons, Cheat sheet and Glossary |
 | `mock.js` | The Mock interview page |
+| `config.js` | The Worker address and Google client ID the Mock interview uses |
+| `worker/` | The Cloudflare Worker that rates answers with the site's Anthropic key (see "Mock interview server") |
 | `vendor/motion.js` | Animation library (see "Design and animation") |
 | `questions.json` | All interview questions |
 | `study.json` | Modules, lessons, cheat sheet and glossary. Edited by hand |
@@ -92,33 +94,100 @@ The menu at the top switches between the pages. Each page has its own address
 
 ## Mock interview
 
-This is the test version, meant for trying the idea yourself.
+Visitors sign in with Google and answer by voice or by typing; no API key is
+needed. Only the emails on the Worker's list can use it for now.
 
 - **What you need:** Chrome, Edge or Safari for voice answers (other browsers
-  can type), a microphone, and an Anthropic API key with credit. You can create
-  a key in the [Anthropic Console](https://console.anthropic.com/).
+  can type), a microphone, and optionally a camera.
 - **How it works:** questions come from `questions.json`, filtered by the topic
   and level you choose. The browser reads each question aloud with its own
   voices and turns your spoken answer into text with its own speech service.
-  The text of your answer, the question and its reference answer go to Claude,
-  which returns a score for correct facts, approach, structure and Tosca terms.
-  With follow-ups on, Claude may ask one follow-up question about an answer;
-  it takes the place of the last question not asked yet, so the length stays as
-  chosen. At the end, one more request writes the summary on the scorecard.
-- **Your key:** it is typed into the page and sent only to `api.anthropic.com`,
-  straight from your browser. It is never part of this repository. On
-  `*.github.io` you can tick "Remember on this device" to keep it in that
-  browser; on other addresses, such as a preview link, it is kept only until
-  you leave the page. The Content-Security-Policy allows no other address.
-- **Cost:** one small request checks the key when you press Start, each rated
-  answer is one request, and the scorecard is one more. Requests are billed to
-  your key. Sonnet is the default rating model; Haiku is cheaper and faster.
-- **Kept in your browser:** your settings and a short list of past interviews.
-  Recordings of your voice are not kept.
+  The text of your answer, the question and its reference answer go to the
+  site's Worker, which asks Claude for a score for correct facts, approach,
+  structure and Tosca terms. With follow-ups on, Claude may ask one follow-up
+  question about an answer; it takes the place of the last question not asked
+  yet, so the length stays as chosen. At the end, one more request writes the
+  summary on the scorecard.
+- **Camera:** the live screen looks like a video call: the interviewer on one
+  side, your own camera on the other. The picture is shown on the page only. It
+  is never recorded, saved or sent anywhere, and you can turn it off on the
+  setup page or during the interview.
+- **Sign-in and limits:** Google signs you in; the Worker checks that sign-in,
+  lets in only the emails on its list and keeps you signed in on that browser
+  for a week. Each person gets 5 interviews a day (reset at midnight, India
+  time) and up to 15 rated answers per interview.
+- **Kept in your browser:** your settings, your sign-in token and a short list
+  of past interviews. Recordings of your voice and camera are not kept.
 
-To open it to other people without their own key, the rating would move to a
-small server that holds one key, signs people in and limits how many
-interviews each person runs.
+Until `config.js` holds the Worker address and the Google client ID, the page
+says the mock interview is not open yet.
+
+## Mock interview server
+
+The Anthropic key lives in a small [Cloudflare Worker](https://developers.cloudflare.com/workers/)
+in `worker/`, never in this repository or in the page. A free Cloudflare
+account is enough. You need [Node.js](https://nodejs.org) 18 or newer.
+
+### 1. Create the Google client ID
+
+1. In [Google Cloud Console](https://console.cloud.google.com/), create a
+   project (or pick one). Under **Google Auth Platform > Branding**, give it the
+   app name "TestStep Academy" and your support email. The default scopes
+   (email, profile, openid) are all it needs. Under **Audience**, either publish
+   the app or add your Google email as a test user, or Google will refuse the
+   sign-in.
+2. Under **Google Auth Platform > Clients**, choose **Create client**, with
+   application type **Web application**.
+3. Under **Authorized JavaScript origins**, add `https://abhi23raj472.github.io`
+   and, for testing on your computer, `http://localhost`,
+   `http://localhost:4173` and `http://127.0.0.1:4173`. No redirect URI is
+   needed.
+4. Copy the client ID (it ends in `.apps.googleusercontent.com`).
+
+### 2. Set up and deploy the Worker
+
+```bash
+cd worker
+npx wrangler login
+npx wrangler kv namespace create USAGE
+```
+
+Put the `id` that the last command prints into `wrangler.toml`, in place of
+`REPLACE_WITH_YOUR_KV_NAMESPACE_ID`, and put the Google client ID into
+`GOOGLE_CLIENT_ID` there. Then store the three secrets (each command asks for
+the value, which is never written to a file):
+
+```bash
+npx wrangler secret put ANTHROPIC_API_KEY   # your Anthropic key
+npx wrangler secret put SESSION_SECRET      # a long random string, at least 32 characters
+npx wrangler secret put ALLOWED_EMAILS      # your Google email; several are separated by commas
+npx wrangler deploy
+```
+
+`deploy` prints the Worker's address, for example
+`https://teststep-academy-api.your-name.workers.dev`. For a random secret,
+`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+prints one.
+
+### 3. Point the site at it
+
+In `config.js`, set `apiBase` to the Worker's address and `googleClientId` to
+the client ID, then commit and push. The page may only call addresses ending in
+`.workers.dev` (see "Security"); if you later give the Worker its own domain,
+add that domain to `connect-src` in `index.html` and to `ALLOWED_ORIGINS` in
+`wrangler.toml`.
+
+### Changing who can use it, and the limits
+
+- **Who:** run `npx wrangler secret put ALLOWED_EMAILS` again with the new list.
+  Removing an email locks that person out at once.
+- **Limits:** `DAILY_INTERVIEWS`, `CALLS_PER_INTERVIEW` and `ALLOWED_MODELS` in
+  `wrangler.toml`, then `npx wrangler deploy`.
+- **Cost:** each rated answer is one request to Anthropic and each scorecard one
+  more, billed to your key. Set a monthly spend limit in the Anthropic Console
+  as a safety net.
+
+The Worker has its own tests: `cd worker && npm test`.
 
 ## Design and animation
 
@@ -170,9 +239,16 @@ no errors and no broken links:
   inline style or script), or a file of the site that does not load. It also
   checks every link inside the site: each lesson, page, interview topic and
   `#id` it points to must exist.
-- `tests/mock.spec.js` runs a whole mock interview with typed answers: rating,
-  a follow-up, a skipped question, the scorecard and a rejected key. The tests
-  answer for the Anthropic API themselves, so they need no key and cost nothing.
+- `tests/mock.spec.js` runs a whole mock interview with typed answers: Google
+  sign-in, rating, a follow-up, a skipped question, the scorecard, the daily
+  limit, an account not on the list, and the camera (with the browser's fake
+  camera). The tests answer for Google and the Worker themselves, so they need
+  no key and cost nothing.
+- `tests/mock-worker.spec.js` runs the page against the real Worker code, with
+  only Google and Anthropic faked, so the two are known to work together.
+- `worker/test/` checks the Worker on its own: Google token checks, the email
+  list, sessions, the limits, and that only the interview's requests reach
+  Anthropic.
 - `tests/links.spec.js` checks every link to another website, one test per
   address: the Tricentis manual pages, the YouTube videos and Google Fonts. A
   link fails when it answers with an error or shows a "not found" page.
@@ -201,7 +277,10 @@ is attached to the run.
 ## Security
 
 - The page carries a Content-Security-Policy: only this site's own script files
-  may run, and styles and fonts may come only from this site and Google Fonts, and the page may send data only to this site and, for the mock interview, to `api.anthropic.com`.
+  may run, plus Google's sign-in script; styles and fonts may come only from
+  this site, Google Fonts and Google sign-in; and the page may send data only to
+  this site, Google sign-in and, for the mock interview, the Worker on
+  `*.workers.dev`.
   For that reason the page has no inline scripts, inline event handlers or
   `style` attributes; keep it that way when you edit `index.html`.
 - All text from `questions.json` and `study.json` is inserted as text, never as
@@ -209,7 +288,12 @@ is attached to the run.
 - `fetch_questions.py` reads only public internet addresses. It refuses
   localhost and local-network addresses, checks every redirect in the same way,
   and reads at most 5 MB of a page.
-- API keys belong in `.env`, which is listed in `.gitignore`.
+- API keys belong in `.env`, which is listed in `.gitignore`. The Anthropic key
+  for the mock interview is a Worker secret; the page never sees it.
+- The Worker checks every Google sign-in against Google's keys and your client
+  ID, accepts only the emails on its list, answers only this site's addresses,
+  passes on only the fields the interview uses (no other models, no server
+  tools, capped length), and limits interviews per person and day.
 
 ## Editing the study content
 

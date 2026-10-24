@@ -3083,31 +3083,174 @@ a.btn.btn-primary:active {
   box-shadow: var(--neu-in);
 }
 
-.mock-voice-row,
-.mock-key-row {
+.mock-voice-row {
   display: flex;
   gap: 12px;
 }
 
-.mock-voice-row .mock-select,
-.mock-key-row .mock-input {
+.mock-voice-row .mock-select {
   flex: 1;
 }
 
-.mock-check {
+/* the sign-in card, shown instead of the options until the visitor signs in */
+.mock-gate-wrap {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 12px 0 0 6px;
-  font-size: 0.9375rem;
-  font-weight: 700;
-  cursor: pointer;
+  justify-content: center;
+  margin-top: 8px;
 }
 
-.mock-check input {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--accent);
+.mock-gate {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 560px;
+  padding: 40px 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.mock-gate h2 {
+  margin: 0;
+  font-size: 1.625rem;
+  font-weight: 900;
+}
+
+.mock-gate-icon {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 26px;
+  background: var(--tone-bg);
+  color: var(--tone-fg);
+  box-shadow: 8px 12px 22px var(--tone-glow), var(--clay-inner);
+}
+
+.mock-gate-icon .mock-gate-lock,
+.mock-gate-icon.is-locked .mock-gate-person {
+  display: none;
+}
+
+.mock-gate-icon.is-locked .mock-gate-lock {
+  display: block;
+}
+
+.mock-gate-text {
+  max-width: 40ch;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+.mock-gate-button {
+  min-height: 44px;
+}
+
+.mock-gate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.mock-gate .mock-error {
+  margin: 0;
+}
+
+/* who is signed in, and how many interviews are left today */
+.mock-acct {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 22px;
+  box-shadow: var(--neu-in-sm);
+}
+
+.mock-acct-avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #cdbbff;
+  color: #2e1f5e;
+  font-size: 1.1875rem;
+  font-weight: 900;
+  box-shadow: 4px 6px 12px rgba(130, 100, 230, 0.38), var(--clay-inner-sm);
+}
+
+.mock-acct-who {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.35;
+}
+
+.mock-acct-who strong {
+  font-weight: 900;
+}
+
+.mock-acct-who span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.btn.mock-signout {
+  min-height: 44px;
+  padding: 0 14px;
+}
+
+.mock-quota {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 18px 0 4px;
+}
+
+.mock-quota-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.875rem;
+  font-weight: 800;
+}
+
+.mock-quota-head strong {
+  font-size: 0.9375rem;
+  font-weight: 900;
+}
+
+.mock-quota-pips {
+  display: flex;
+  gap: 6px;
+}
+
+.mock-quota-pips span {
+  flex: 1;
+  height: 14px;
+  border-radius: 7px;
+  box-shadow: var(--neu-in-sm);
+}
+
+.mock-quota-pips span.is-on {
+  background: #9ee8cf;
+  box-shadow: 2px 3px 6px rgba(40, 170, 130, 0.35), var(--clay-inner-sm);
+}
+
+.mock-quota .mock-hint {
+  margin: 0;
 }
 
 .mock-error {

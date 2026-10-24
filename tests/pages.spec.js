@@ -7,7 +7,7 @@ const PAGES = [
   { name: 'Home', hash: '#/', ready: '#homeUnits .module-card' },
   { name: 'Syllabus', hash: '#/syllabus', ready: '#syllabusList .lesson-row' },
   { name: 'Interview preparation', hash: '#/interview', ready: '#cards .card' },
-  { name: 'Mock interview', hash: '#/mock', ready: '#mockTopics .chip' },
+  { name: 'Mock interview', hash: '#/mock', ready: '#mockGate' }, // config.js is empty here, so it shows "Not open yet"
   { name: 'Cheat sheet', hash: '#/cheatsheet', ready: '.cheat-group' },
   { name: 'Glossary', hash: '#/glossary', ready: '.term' },
 ];
