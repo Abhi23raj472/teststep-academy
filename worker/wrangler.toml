@@ -1,0 +1,25 @@
+# Cloudflare Worker for the mock interview. Setup steps are in the README,
+# under "Mock interview server".
+name = "teststep-academy-api"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+# The OAuth client ID from Google Cloud Console (it is public; it also goes in config.js).
+GOOGLE_CLIENT_ID = ""
+# The addresses allowed to call this API, separated by commas.
+ALLOWED_ORIGINS = "https://abhi23raj472.github.io,http://127.0.0.1:4173,http://localhost:4173"
+ALLOWED_MODELS = "claude-sonnet-5-5,claude-haiku-5-5,claude-opus-5-5"
+DAILY_INTERVIEWS = "5"
+CALLS_PER_INTERVIEW = "15"
+MAX_TOKENS = "2000"
+TIME_ZONE = "Asia/Kolkata"
+
+# Secrets, set with `npx wrangler secret put <NAME>` and never written in this file:
+#   ANTHROPIC_API_KEY  your Anthropic key
+#   SESSION_SECRET     a long random string that signs sign-in tokens
+#   ALLOWED_EMAILS     the Google emails allowed in, separated by commas
+
+[[kv_namespaces]]
+binding = "USAGE"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
