@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Only this site's own files may run as script; styles and fonts may also come from Google Fonts.
-       The mock interview may also call the Anthropic API, with the visitor's own key. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.anthropic.com; base-uri 'none'; form-action 'none'">
+       The mock interview signs in with Google and calls the site's own Worker (see config.js). -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' https://fonts.googleapis.com https://accounts.google.com/gsi/style; font-src https://fonts.gstatic.com; img-src 'self' data:; frame-src https://accounts.google.com/gsi/; connect-src 'self' https://accounts.google.com/gsi/ https://*.workers.dev; base-uri 'none'; form-action 'none'">
   <title>TestStep Academy</title>
   <meta name="description" content="Study material for Tricentis Tosca: a full syllabus in simple words with diagrams and examples, plus scenario-based interview questions.">
   <meta name="color-scheme" content="light dark">
@@ -255,7 +255,23 @@
           </ol>
         </div>
 
-        <div class="wrap mock-setup">
+        <!-- shown instead of the options until the visitor has signed in -->
+        <div class="wrap mock-gate-wrap" id="mockGate" hidden>
+          <section class="mock-card mock-gate" aria-labelledby="mockGateTitle">
+            <span class="mock-gate-icon tone-lilac" id="mockGateIcon" aria-hidden="true"><svg class="mock-gate-person" viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1-3.9 4-5.8 7.5-5.8s6.5 1.9 7.5 5.8"/></svg><svg class="mock-gate-lock" viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg></span>
+            <h2 id="mockGateTitle">Sign in to start</h2>
+            <p class="mock-gate-text" id="mockGateText">No API key needed. Sign in with your Google account and your answers are rated by Claude on our side.</p>
+            <div class="mock-gate-button" id="mockGoogleButton"></div>
+            <div class="mock-gate-actions" id="mockGateActions" hidden>
+              <button class="btn" id="mockOtherAccount" type="button">Use another account</button>
+              <a class="btn" href="#/interview">Practise the question bank</a>
+            </div>
+            <p class="mock-error" id="mockGateError" role="alert" hidden></p>
+            <p class="mock-hint" id="mockGateHint">We only see your name and email. Your camera and voice stay in your browser.</p>
+          </section>
+        </div>
+
+        <div class="wrap mock-setup" id="mockSetupBody">
           <form class="mock-card mock-options" id="mockOptions" aria-label="Interview options" novalidate>
             <fieldset class="mock-field">
               <legend>Topic</legend>
@@ -368,22 +384,26 @@
               </div>
             </section>
 
-            <section class="mock-card" aria-labelledby="mockKeyTitle">
-              <h2 id="mockKeyTitle">AI rating</h2>
-              <p class="mock-note">Answers are rated by Claude through your own Anthropic API key. The key goes straight from this browser to Anthropic and is never sent to GitHub.</p>
-              <label class="mock-label" for="mockKey">Your Anthropic API key</label>
-              <div class="mock-key-row">
-                <input class="mock-input" id="mockKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-...">
-                <button class="btn" id="mockKeyForget" type="button" hidden>Forget</button>
+            <section class="mock-card" aria-labelledby="mockAcctTitle">
+              <h2 id="mockAcctTitle">Your account</h2>
+              <div class="mock-acct">
+                <span class="mock-acct-avatar" id="mockAcctAvatar" aria-hidden="true"></span>
+                <span class="mock-acct-who"><strong id="mockAcctName"></strong><span id="mockAcctEmail"></span></span>
+                <button class="btn mock-signout" id="mockSignOut" type="button">Sign out</button>
               </div>
-              <label class="mock-check" id="mockRememberRow" hidden><input type="checkbox" id="mockRemember"> Remember on this device</label>
+              <div class="mock-quota">
+                <div class="mock-quota-head"><span>Interviews today</span><strong id="mockQuotaText"></strong></div>
+                <div class="mock-quota-pips" id="mockQuotaPips" aria-hidden="true"></div>
+                <p class="mock-hint">Resets at midnight.</p>
+              </div>
               <label class="mock-label" for="mockModel">Rating model</label>
               <select class="mock-select" id="mockModel">
                 <option value="claude-sonnet-5-5">Claude Sonnet 5.5 (balanced)</option>
                 <option value="claude-haiku-5-5">Claude Haiku 5.5 (faster, cheaper)</option>
                 <option value="claude-opus-5-5">Claude Opus 5.5 (most thorough)</option>
               </select>
-              <p class="mock-error" id="mockKeyError" role="alert" hidden></p>
+              <p class="mock-hint">Answers are rated by Claude on our server. You don't need an API key.</p>
+              <p class="mock-error" id="mockStartError" role="alert" hidden></p>
             </section>
 
             <button class="btn btn-primary btn-lg mock-start" id="mockStart" type="button">Start interview</button>
@@ -637,6 +657,7 @@
   <script src="vendor/motion.js"></script>
   <script src="script.js"></script>
   <script src="site.js"></script>
+  <script src="config.js"></script>
   <script src="mock.js"></script>
 </body>
 </html>

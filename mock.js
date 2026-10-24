@@ -1,8 +1,9 @@
 /* TestStep Academy - Mock interview.
    An interviewer reads questions from the question bank aloud (the browser's speech
    synthesis), the candidate answers by speaking (the browser's speech recognition) or
-   by typing, and Claude rates each answer through the Anthropic API with the visitor's
-   own key. The key is sent only to api.anthropic.com; it is never part of this site.
+   by typing, and Claude rates each answer. Visitors sign in with Google; the rating
+   requests go to the site's own Cloudflare Worker (worker/, address in config.js),
+   which holds the Anthropic key, so no key is ever part of this page.
    Everything is inserted as text, never as HTML. Shared helpers come from script.js
    (window.TSH) and the lessons from site.js (window.TSH.site). */
 (function () {
@@ -12,8 +13,12 @@
   if (!T) return;
   var h = T.h, icon = T.icon;
 
-  var API_URL = 'https://api.anthropic.com/v1/messages';
-  var KEY_STORE = 'tsh.mock.key';
+  var CONFIG = window.TSA_CONFIG || {};
+  var API_BASE = String(CONFIG.apiBase || '').replace(/\/+$/, '');
+  var CLIENT_ID = String(CONFIG.googleClientId || '');
+  var GSI_URL = 'https://accounts.google.com/gsi/client';
+  var OLD_KEY_STORE = 'tsh.mock.key'; // where the old version kept the visitor's own key
+  var SESSION_STORE = 'tsh.mock.session';
   var PREFS_STORE = 'tsh.mock.prefs';
   var HISTORY_STORE = 'tsh.mock.history';
   var MINUTES_PER_QUESTION = 3;
@@ -21,9 +26,6 @@
 
   var Recognition = window.SpeechRecognition || window.webkitSpeechRecognition || null;
   var synth = window.speechSynthesis || null;
-  // A key may only be remembered where no other site shares this page's storage.
-  var canRemember = /\.github\.io$/.test(location.hostname) ||
-    location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
   var el = {};
   [
@@ -33,7 +35,10 @@
     'mockCamPreview', 'mockCamPreviewVideo', 'mockCamTest', 'mockCamStatus', 'mockCamDeviceRow', 'mockCamDevice', 'mockCamOn',
     'mockCamTile', 'mockVideo', 'mockCamOffText', 'mockCamToggle', 'mockCamToggleLabel',
     'mockVoice', 'mockVoiceSample', 'mockRate',
-    'mockKey', 'mockKeyForget', 'mockRememberRow', 'mockRemember', 'mockModel', 'mockKeyError',
+    'mockGate', 'mockGateIcon', 'mockGateTitle', 'mockGateText', 'mockGoogleButton', 'mockGateActions', 'mockOtherAccount',
+    'mockGateError', 'mockGateHint', 'mockSetupBody',
+    'mockAcctAvatar', 'mockAcctName', 'mockAcctEmail', 'mockSignOut', 'mockQuotaText', 'mockQuotaPips',
+    'mockModel', 'mockStartError',
     'mockStart', 'mockSupport', 'mockHistoryBlock', 'mockHistory',
     'mockBarMeta', 'mockProgress', 'mockClock', 'mockEnd',
     'mockTopicChip', 'mockLevelChip', 'mockQCount', 'mockOrb', 'mockStatus', 'mockQuestion',
@@ -49,7 +54,7 @@
 
   var questions = [];
   var settings = loadPrefs();
-  var apiKey = '';
+  var account = null;   // { token, user: { name, email }, usage }, see signIn()
   var session = null;   // the interview in progress, see startInterview()
   var screen = 'setup'; // setup | live | feedback | summary
   var visible = false;  // whether the Mock interview page is open
@@ -613,42 +618,61 @@
 
   // ---------- the Anthropic API ----------
 
-  function apiError(status, body) {
-    var detail = body && body.error && body.error.message ? String(body.error.message) : '';
+  // Turns a failed request into a message for the visitor. The Worker answers
+  // { error, message }; errors from Anthropic come through as { error: { message } }.
+  function serverError(status, body) {
+    var code = body && typeof body.error === 'string' ? body.error : '';
+    var own = body && typeof body.message === 'string' ? body.message : '';
     var msg;
-    if (status === 401) msg = 'Anthropic did not accept the API key. Check the key and try again.';
-    else if (status === 403) msg = 'This API key may not use the chosen model. Pick another rating model.';
-    else if (status === 404) msg = 'The rating model was not found for this key. Pick another rating model.';
-    else if (/credit|balance|billing/i.test(detail)) msg = 'Your Anthropic account has no credit left. Add credit in the Anthropic Console, then try again.';
-    else if (status === 429) msg = 'Too many requests for this key right now. Wait a minute and try again.';
+    if (code === 'signed_out' || status === 401) msg = own || 'Please sign in again.';
+    else if (code && own) msg = own;
+    else if (status === 429) msg = 'The rating service is busy. Wait a minute and try again.';
     else if (status >= 500) msg = 'Anthropic is busy right now. Try again in a moment.';
-    else msg = 'The request to Anthropic failed.';
-    var err = new Error(detail ? msg + ' (' + clean(detail, 200) + ')' : msg);
+    else msg = 'The answer could not be rated. Try again.';
+    var err = new Error(msg);
     err.status = status;
+    err.code = code || (status === 401 ? 'signed_out' : '');
+    err.email = body && body.email;
     return err;
   }
 
-  function callClaude(payload) {
-    return fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        // the key belongs to the visitor and is used from their own browser
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify(Object.assign({ model: settings.model }, payload))
+  function api(path, options) {
+    var opts = options || {};
+    var headers = { 'content-type': 'application/json' };
+    if (account && account.token) headers.Authorization = 'Bearer ' + account.token;
+    Object.keys(opts.headers || {}).forEach(function (k) { headers[k] = opts.headers[k]; });
+    return fetch(API_BASE + path, {
+      method: opts.method || 'GET',
+      headers: headers,
+      body: opts.body === undefined ? undefined : JSON.stringify(opts.body)
     })
       .catch(function () {
-        throw new Error('Could not reach Anthropic. Check your internet connection and try again.');
+        throw new Error('Could not reach the rating server. Check your internet connection and try again.');
       })
       .then(function (res) {
         return res.json().catch(function () { return null; }).then(function (body) {
-          if (!res.ok) throw apiError(res.status, body);
+          if (!res.ok) {
+            var err = serverError(res.status, body);
+            if (err.code === 'signed_out' || err.code === 'not_allowed') lostAccess(err);
+            throw err;
+          }
+          var left = res.headers.get('X-Interviews-Left');
+          if (left !== null && account && account.usage) {
+            account.usage.interviewsLeft = Number(left);
+            saveAccount();
+            renderAccount();
+          }
           return body;
         });
       });
+  }
+
+  function callClaude(payload) {
+    return api('/api/messages', {
+      method: 'POST',
+      headers: { 'X-Interview-Id': session ? session.id : '' },
+      body: Object.assign({ model: settings.model }, payload)
+    });
   }
 
   // Asks Claude to fill in one tool call, which keeps the answer in a fixed shape.
@@ -665,11 +689,6 @@
       if (!block || !block.input) throw new Error('Claude did not return a rating. Try again.');
       return block.input;
     });
-  }
-
-  // A one-token request that confirms the key, the model and the credit before starting.
-  function checkKey() {
-    return callClaude({ max_tokens: 1, messages: [{ role: 'user', content: 'Reply with OK.' }] });
   }
 
   function criterion(description) {
@@ -940,7 +959,7 @@
     var items = readStore(HISTORY_STORE, []);
     items = Array.isArray(items) ? items : [];
     el.mockHistory.textContent = '';
-    show(el.mockHistoryBlock, items.length > 0);
+    show(el.mockHistoryBlock, items.length > 0 && !!account && configured());
     items.slice(0, 6).forEach(function (item) {
       var li = h('li', 'mock-history-item');
       var pct = Math.max(0, Math.min(100, Math.round(Number(item.percent) || 0)));
@@ -955,44 +974,190 @@
     });
   }
 
-  function keyError(text) {
-    el.mockKeyError.textContent = text || '';
-    show(el.mockKeyError, !!text);
+  function startError(text) {
+    el.mockStartError.textContent = text || '';
+    show(el.mockStartError, !!text);
   }
 
-  function setupKey() {
-    var stored = canRemember ? readStore(KEY_STORE, '') : '';
-    if (typeof stored === 'string' && stored) {
-      apiKey = stored;
-      el.mockKey.value = stored;
-      el.mockRemember.checked = true;
+  // ---------- signing in ----------
+  // Google signs the visitor in on this page; the Worker checks that sign-in once and
+  // hands back its own token, kept in this browser for a week.
+
+  var gateState = 'signedOut'; // signedOut | notAllowed | closed
+  var gateEmail = '';
+  var gsi = null;              // Google's sign-in library, once loaded
+
+  function configured() {
+    return !!(API_BASE && CLIENT_ID);
+  }
+
+  function loadAccount() {
+    var a = readStore(SESSION_STORE, null);
+    return a && typeof a.token === 'string' && a.user && typeof a.user.email === 'string' ? a : null;
+  }
+
+  function saveAccount() {
+    writeStore(SESSION_STORE, account);
+  }
+
+  function initials(name) {
+    var parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    return ((parts[0] || '?')[0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+  }
+
+  function renderAccount() {
+    if (!account) return;
+    el.mockAcctAvatar.textContent = initials(account.user.name);
+    el.mockAcctName.textContent = account.user.name || account.user.email;
+    el.mockAcctEmail.textContent = account.user.email;
+    var u = account.usage || {};
+    var limit = Math.max(0, Number(u.interviewsLimit) || 0);
+    var left = Math.max(0, Math.min(limit, Number(u.interviewsLeft) || 0));
+    el.mockQuotaText.textContent = limit ? left + ' of ' + limit + ' left' : '';
+    el.mockQuotaPips.textContent = '';
+    for (var i = 0; i < limit; i++) el.mockQuotaPips.appendChild(h('span', i < left ? 'is-on' : ''));
+  }
+
+  // Shows either the options (signed in) or the sign-in card.
+  function paintGate() {
+    var signedIn = !!account && configured();
+    show(el.mockSetupBody, signedIn);
+    show(el.mockGate, !signedIn);
+    renderHistory();
+    if (signedIn) {
+      renderAccount();
+      return;
     }
-    show(el.mockRememberRow, canRemember);
-    show(el.mockKeyForget, !!stored);
-    el.mockKey.addEventListener('input', function () {
-      apiKey = el.mockKey.value.trim();
-      keyError('');
-      if (el.mockRemember.checked) writeStore(KEY_STORE, apiKey || null);
+    var state = !configured() ? 'closed' : gateState;
+    var locked = state !== 'signedOut';
+    el.mockGateIcon.className = 'mock-gate-icon ' + (locked ? 'tone-lemon is-locked' : 'tone-lilac');
+    if (state === 'closed') {
+      el.mockGateTitle.textContent = 'Not open yet';
+      el.mockGateText.textContent = 'The mock interview is being set up. Practise with the question bank meanwhile.';
+    } else if (state === 'notAllowed') {
+      el.mockGateTitle.textContent = 'Not open yet';
+      el.mockGateText.textContent = 'The mock interview is in a private preview. ' + (gateEmail || 'This account') + " isn't on the list yet.";
+    } else {
+      el.mockGateTitle.textContent = 'Sign in to start';
+      el.mockGateText.textContent = 'No API key needed. Sign in with your Google account and your answers are rated by Claude on our side.';
+    }
+    show(el.mockGoogleButton, state === 'signedOut');
+    show(el.mockGateHint, state === 'signedOut');
+    show(el.mockGateActions, state !== 'signedOut');
+    show(el.mockOtherAccount, state === 'notAllowed');
+    if (state === 'signedOut') loadGoogle();
+  }
+
+  function gateError(text) {
+    el.mockGateError.textContent = text || '';
+    show(el.mockGateError, !!text);
+  }
+
+  // Google's script is loaded only when the sign-in card is shown.
+  function loadGoogle() {
+    if (gsi) {
+      drawGoogleButton();
+      return;
+    }
+    if (document.getElementById('gsiScript')) return;
+    var script = document.createElement('script');
+    script.id = 'gsiScript';
+    script.src = GSI_URL;
+    script.async = true;
+    script.onload = function () {
+      if (!window.google || !window.google.accounts || !window.google.accounts.id) return;
+      gsi = window.google.accounts.id;
+      gsi.initialize({ client_id: CLIENT_ID, callback: onGoogleSignIn, auto_select: false, ux_mode: 'popup' });
+      drawGoogleButton();
+    };
+    script.onerror = function () {
+      script.remove();
+      gateError('Google sign-in could not load. Check your connection, or turn off a blocker for accounts.google.com, then reload.');
+    };
+    document.head.appendChild(script);
+  }
+
+  function drawGoogleButton() {
+    el.mockGoogleButton.textContent = '';
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    gsi.renderButton(el.mockGoogleButton, {
+      type: 'standard', theme: dark ? 'filled_black' : 'outline', size: 'large',
+      shape: 'pill', text: 'signin_with', logo_alignment: 'left'
     });
-    el.mockRemember.addEventListener('change', function () {
-      writeStore(KEY_STORE, el.mockRemember.checked && apiKey ? apiKey : null);
-      show(el.mockKeyForget, el.mockRemember.checked && !!apiKey);
+  }
+
+  function onGoogleSignIn(response) {
+    gateError('');
+    var credential = response && response.credential;
+    if (!credential) return;
+    api('/api/session', { method: 'POST', body: { credential: credential } })
+      .then(function (data) {
+        account = { token: data.token, user: data.user, usage: data.usage };
+        saveAccount();
+        gateState = 'signedOut';
+        paintGate();
+      })
+      .catch(function (err) {
+        if (err.code !== 'not_allowed') gateError(err.message);
+      });
+  }
+
+  // The token expired, or the email was taken off the list.
+  function lostAccess(err) {
+    account = null;
+    saveAccount();
+    gateState = err.code === 'not_allowed' ? 'notAllowed' : 'signedOut';
+    gateEmail = err.email || '';
+    if (screen === 'setup') paintGate();
+  }
+
+  function signOut() {
+    account = null;
+    saveAccount();
+    gateState = 'signedOut';
+    if (gsi) gsi.disableAutoSelect();
+    startError('');
+    paintGate();
+  }
+
+  // Checks the stored sign-in and fetches how many interviews are left today.
+  function refreshUsage() {
+    return api('/api/me').then(function (data) {
+      if (!account) return data;
+      account.user = data.user;
+      account.usage = data.usage;
+      saveAccount();
+      renderAccount();
+      return data;
     });
-    el.mockKeyForget.addEventListener('click', function () {
-      writeStore(KEY_STORE, null);
-      apiKey = '';
-      el.mockKey.value = '';
-      el.mockRemember.checked = false;
-      show(el.mockKeyForget, false);
-      el.mockKey.focus();
+  }
+
+  function newInterviewId() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'iv-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12);
+  }
+
+  function initAccount() {
+    try { localStorage.removeItem(OLD_KEY_STORE); } catch (e) { /* storage blocked */ }
+    account = configured() ? loadAccount() : null;
+    el.mockSignOut.addEventListener('click', signOut);
+    el.mockOtherAccount.addEventListener('click', function () {
+      if (gsi) gsi.disableAutoSelect();
+      gateState = 'signedOut';
+      gateEmail = '';
+      paintGate();
     });
+    if (account) refreshUsage().catch(function () { /* shown when they press Start */ });
   }
 
   // ---------- switching screens ----------
 
   function showScreen(name, focus) {
     screen = name;
-    if (name === 'setup') paintMode(settings.mode);
+    if (name === 'setup') {
+      paintMode(settings.mode);
+      paintGate();
+    }
     show(el.mockSetup, name === 'setup');
     show(el.mockLive, name === 'live');
     show(el.mockFeedback, name === 'feedback');
@@ -1026,31 +1191,34 @@
   // ---------- the interview ----------
 
   function startInterview() {
-    keyError('');
+    startError('');
     if (!questions.length) {
-      keyError('The questions have not loaded yet. Wait a moment and try again.');
+      startError('The questions have not loaded yet. Wait a moment and try again.');
       return;
     }
-    apiKey = el.mockKey.value.trim();
-    if (!apiKey) {
-      keyError('Add your Anthropic API key to have your answers rated.');
-      el.mockKey.focus();
+    if (!account) {
+      paintGate();
       return;
     }
     var picked = pool().questions;
     if (!picked.length) {
-      keyError('No questions match this topic and level.');
+      startError('No questions match this topic and level.');
       return;
     }
     closeMic();
     el.mockStart.disabled = true;
-    el.mockStart.textContent = 'Checking your key…';
+    el.mockStart.textContent = 'Getting ready…';
     // Speech has to start from a click; an empty utterance unlocks it for later.
     if (synth && window.SpeechSynthesisUtterance) synth.speak(new window.SpeechSynthesisUtterance(''));
 
-    checkKey()
+    refreshUsage()
       .then(function () {
+        if (!account) throw new Error('Please sign in again.');
+        if (account.usage && account.usage.interviewsLeft <= 0) {
+          throw new Error('You have used all of today\'s interviews. Come back tomorrow.');
+        }
         session = {
+          id: newInterviewId(),
           started: Date.now(),
           answerStarted: 0,
           settings: Object.assign({}, settings),
@@ -1067,7 +1235,7 @@
         askCurrent();
       })
       .catch(function (err) {
-        keyError(err.message);
+        if (account) startError(err.message);
       })
       .then(function () {
         el.mockStart.disabled = false;
@@ -1618,7 +1786,7 @@
   el.mockModel.addEventListener('change', function () {
     settings.model = el.mockModel.value;
     savePrefs();
-    keyError('');
+    startError('');
   });
 
   el.mockMicTest.addEventListener('click', testMic);
@@ -1714,7 +1882,7 @@
 
   buildMeter();
   drawMeter(0);
-  setupKey();
+  initAccount();
   fillVoices();
   if (synth) {
     if (synth.addEventListener) synth.addEventListener('voiceschanged', fillVoices);

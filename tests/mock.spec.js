@@ -1,15 +1,29 @@
-// The mock interview from start to scorecard, with typed answers. The Anthropic API
-// is answered by the test itself, so no key and no internet are needed and nothing
-// is billed. The real API is only called when someone uses the page.
+// The mock interview from sign-in to scorecard, with typed answers. Google and the
+// site's Worker (which talks to Anthropic) are answered by the test itself, so no key
+// and no internet are needed and nothing is billed.
 const { test, expect } = require('@playwright/test');
 const { watchErrors, brokenInternalLinks } = require('./helpers');
 
-const API = 'https://api.anthropic.com/v1/messages';
+const WORKER = 'https://teststep-api.test.workers.dev';
+const CONFIG = { apiBase: WORKER, googleClientId: 'test-client.apps.googleusercontent.com' };
+const USER = { name: 'Abhishek Kumar', email: 'me@example.com' };
 const CORS = {
   'access-control-allow-origin': '*',
-  'access-control-allow-headers': '*',
-  'access-control-allow-methods': 'POST, OPTIONS',
+  'access-control-allow-headers': 'Authorization, Content-Type, X-Interview-Id',
+  'access-control-allow-methods': 'GET, POST, OPTIONS',
+  'access-control-expose-headers': 'X-Interviews-Left',
 };
+
+// Google's sign-in library: its button signs in at once with a made-up token.
+const FAKE_GSI = `window.google = { accounts: { id: {
+  initialize: function (o) { window.__gsi = o; },
+  renderButton: function (el) {
+    var b = document.createElement('button'); b.type = 'button'; b.textContent = 'Sign in with Google';
+    b.onclick = function () { window.__gsi.callback({ credential: 'google-id-token' }); };
+    el.appendChild(b);
+  },
+  disableAutoSelect: function () {}
+} } };`;
 
 const RATING = {
   score: 6,
@@ -32,30 +46,52 @@ function message(content) {
   return { id: 'msg_test', type: 'message', role: 'assistant', model: 'test', content, stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 } };
 }
 
-// Answers like the Anthropic API. `rate` returns the rating for the n-th answer.
-async function fakeApi(page, rate, status = 200) {
+// Plays the Worker: sign-in, usage, and rating requests answered like the Anthropic API.
+// `rate` returns the rating for the n-th answer.
+async function fakeWorker(page, { rate = () => RATING, status = 200, allowed = true, left = 5 } = {}) {
   const calls = [];
-  await page.route(API, async (route) => {
+  const usage = () => ({ interviewsLimit: 5, interviewsLeft: left, callsPerInterview: 15 });
+  await page.route(GSI_ROUTE, (route) => route.fulfill({ contentType: 'text/javascript', body: FAKE_GSI }));
+  await page.route(WORKER + '/**', async (route) => {
     const request = route.request();
     if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: CORS });
+    const path = new URL(request.url()).pathname;
     const body = request.postDataJSON();
-    calls.push({ body, headers: request.headers() });
-    if (status !== 200) {
-      return route.fulfill({ status, headers: CORS, json: { type: 'error', error: { type: 'authentication_error', message: 'invalid x-api-key' } } });
+    calls.push({ path, body, headers: request.headers() });
+    if (path === '/api/session') {
+      if (!allowed) return route.fulfill({ status: 403, headers: CORS, json: { error: 'not_allowed', message: 'This account is not on the list yet.', email: 'stranger@example.com' } });
+      return route.fulfill({ headers: CORS, json: { token: 'session-token', user: USER, usage: usage() } });
     }
-    if (!body.tools) return route.fulfill({ headers: CORS, json: message([{ type: 'text', text: 'OK' }]) });
+    if (path === '/api/me') return route.fulfill({ headers: CORS, json: { user: USER, usage: usage() } });
+    if (status !== 200) {
+      return route.fulfill({ status, headers: CORS, json: { error: 'daily_limit', message: 'You have used all 5 interviews for today. Come back tomorrow.' } });
+    }
     const name = body.tools[0].name;
-    const n = calls.filter((c) => c.body.tools && c.body.tools[0].name === 'rate_answer').length;
+    const n = calls.filter((c) => c.body && c.body.tools && c.body.tools[0].name === 'rate_answer').length;
     const input = name === 'rate_answer'
       ? rate(n)
       : { headline: 'Getting there', summary: 'Solid basics; practise tables.', strengths: ['Clear answers.'], work_on: ['Constraints on tables.'] };
-    return route.fulfill({ headers: CORS, json: message([{ type: 'tool_use', id: 'toolu_' + calls.length, name, input }]) });
+    return route.fulfill({ headers: { ...CORS, 'x-interviews-left': '4' }, json: message([{ type: 'tool_use', id: 'toolu_' + calls.length, name, input }]) });
   });
   return calls;
 }
 
-async function setUp(page, { followUps }) {
+const GSI_ROUTE = 'https://accounts.google.com/gsi/client';
+
+// Opens the page with the Worker set up, already signed in unless `signedIn` is false.
+async function open(page, { signedIn = true, config = CONFIG } = {}) {
+  await page.addInitScript(([cfg, user, signed]) => {
+    window.TSA_CONFIG = cfg;
+    if (signed && !sessionStorage.getItem('seeded')) {
+      sessionStorage.setItem('seeded', '1');
+      localStorage.setItem('tsh.mock.session', JSON.stringify({ token: 'session-token', user, usage: { interviewsLimit: 5, interviewsLeft: 5, callsPerInterview: 15 } }));
+    }
+  }, [config, USER, signedIn]);
   await page.goto('/index.html#/mock');
+}
+
+async function setUp(page, { followUps, opened = false }) {
+  if (!opened) await open(page);
   await expect(page.locator('#mockTopics .chip').first()).toBeVisible();
   await page.locator('#mockTopics .chip', { hasText: 'Steering dynamic controls' }).click();
   await page.locator('#mockLevel [data-value=""]').click();
@@ -63,7 +99,6 @@ async function setUp(page, { followUps }) {
   await page.locator('#mockMode [data-value="text"]').click();
   const toggle = page.locator('#mockFollowUps');
   if ((await toggle.getAttribute('aria-checked')) !== String(followUps)) await toggle.click();
-  await page.locator('#mockKey').fill('sk-ant-test-key');
   await page.locator('#mockStart').click();
   await expect(page.locator('#mockLive')).toBeVisible();
 }
@@ -78,9 +113,9 @@ async function answer(page, text) {
 test.describe('Mock interview', () => {
   test('rates each answer, asks a follow-up and ends with a scorecard', async ({ page }) => {
     const errors = await watchErrors(page);
-    const calls = await fakeApi(page, (n) => (n === 1
+    const calls = await fakeWorker(page, { rate: (n) => (n === 1
       ? { ...RATING, follow_up: 'And how do you reach the last row, whatever the size of the table?' }
-      : { ...RATING, score: 8, headline: 'Strong answer.' }));
+      : { ...RATING, score: 8, headline: 'Strong answer.' }) });
 
     await setUp(page, { followUps: true });
     const firstQuestion = await page.locator('#mockQuestion').textContent();
@@ -120,14 +155,19 @@ test.describe('Mock interview', () => {
     await expect(page.locator('#mockReviseList a').first()).toHaveAttribute('href', '#/learn/tables');
     expect(await brokenInternalLinks(page), 'broken links on the scorecard').toEqual([]);
 
-    // what was sent to Anthropic
-    const ratings = calls.filter((c) => c.body.tools && c.body.tools[0].name === 'rate_answer');
+    // what was sent to the Worker: the session token, one interview id, and never a key
+    const sent = calls.filter((c) => c.path === '/api/messages');
+    const ratings = sent.filter((c) => c.body.tools[0].name === 'rate_answer');
     expect(ratings).toHaveLength(2);
+    expect(sent).toHaveLength(3); // two ratings and the scorecard summary
+    const ids = new Set(sent.map((c) => c.headers['x-interview-id']));
+    expect(ids.size).toBe(1);
+    expect([...ids][0]).toMatch(/^[A-Za-z0-9-]{8,64}$/);
     for (const call of calls) {
-      expect(call.headers['x-api-key']).toBe('sk-ant-test-key');
-      expect(call.headers['anthropic-dangerous-direct-browser-access']).toBe('true');
-      expect(call.body.model).toBe('claude-sonnet-5-5');
+      expect(call.headers.authorization).toBe('Bearer session-token');
+      expect(call.headers['x-api-key']).toBeUndefined();
     }
+    for (const call of sent) expect(call.body.model).toBe('claude-sonnet-5-5');
     const first = ratings[0].body.messages[0].content;
     expect(first).toContain(firstQuestion);
     expect(first).toContain('I scan the table as one Table control and verify row three.');
@@ -143,38 +183,80 @@ test.describe('Mock interview', () => {
     expect(errors, 'errors on the page').toEqual([]);
   });
 
-  test('explains a rejected API key before the interview starts', async ({ page }) => {
-    await fakeApi(page, () => RATING, 401);
-    await page.goto('/index.html#/mock');
-    await expect(page.locator('#mockTopics .chip').first()).toBeVisible();
-    await page.locator('#mockKey').fill('sk-ant-wrong');
-    await page.locator('#mockStart').click();
-    await expect(page.locator('#mockKeyError')).toContainText('Anthropic did not accept the API key');
-    await expect(page.locator('#mockSetup')).toBeVisible();
-    await expect(page.locator('#mockLive')).toBeHidden();
+  test('signs in with Google, shows the account, and signs out', async ({ page }) => {
+    const errors = await watchErrors(page);
+    const calls = await fakeWorker(page);
+    await open(page, { signedIn: false });
+    await expect(page.locator('#mockGate')).toBeVisible();
+    await expect(page.locator('#mockGateTitle')).toHaveText('Sign in to start');
+    await expect(page.locator('#mockSetupBody')).toBeHidden();
+    await expect(page.locator('#mockKey')).toHaveCount(0);
+
+    await page.locator('#mockGoogleButton button').click();
+    await expect(page.locator('#mockSetupBody')).toBeVisible();
+    await expect(page.locator('#mockGate')).toBeHidden();
+    await expect(page.locator('#mockAcctName')).toHaveText(USER.name);
+    await expect(page.locator('#mockAcctEmail')).toHaveText(USER.email);
+    await expect(page.locator('#mockAcctAvatar')).toHaveText('AK');
+    await expect(page.locator('#mockQuotaText')).toHaveText('5 of 5 left');
+    await expect(page.locator('#mockQuotaPips span.is-on')).toHaveCount(5);
+    expect(calls.find((c) => c.path === '/api/session').body).toEqual({ credential: 'google-id-token' });
+
+    // stays signed in after a reload
+    await page.reload();
+    await expect(page.locator('#mockSetupBody')).toBeVisible();
+
+    await page.locator('#mockSignOut').click();
+    await expect(page.locator('#mockGate')).toBeVisible();
+    expect(await page.evaluate(() => localStorage.getItem('tsh.mock.session'))).toBeNull();
+    expect(errors, 'errors on the page').toEqual([]);
   });
 
-  test('asks for a key before starting', async ({ page }) => {
-    await page.goto('/index.html#/mock');
+  test('tells an account that is not on the list', async ({ page }) => {
+    await fakeWorker(page, { allowed: false });
+    await open(page, { signedIn: false });
+    await page.locator('#mockGoogleButton button').click();
+    await expect(page.locator('#mockGateTitle')).toHaveText('Not open yet');
+    await expect(page.locator('#mockGateText')).toContainText('stranger@example.com');
+    await expect(page.locator('#mockOtherAccount')).toBeVisible();
+    await expect(page.locator('#mockSetupBody')).toBeHidden();
+    await page.locator('#mockOtherAccount').click();
+    await expect(page.locator('#mockGateTitle')).toHaveText('Sign in to start');
+  });
+
+  test('says it is not open yet while config.js is empty', async ({ page }) => {
+    const errors = await watchErrors(page);
+    await open(page, { signedIn: true, config: { apiBase: '', googleClientId: '' } });
+    await expect(page.locator('#mockGateTitle')).toHaveText('Not open yet');
+    await expect(page.locator('#mockGoogleButton')).toBeHidden();
+    await expect(page.locator('#mockSetupBody')).toBeHidden();
+    expect(errors, 'errors on the page').toEqual([]);
+  });
+
+  test('stops at the daily limit before the interview starts', async ({ page }) => {
+    await fakeWorker(page, { left: 0 });
+    await open(page);
     await expect(page.locator('#mockTopics .chip').first()).toBeVisible();
     await page.locator('#mockStart').click();
-    await expect(page.locator('#mockKeyError')).toContainText('Add your Anthropic API key');
-    await expect(page.locator('#mockKey')).toBeFocused();
+    await expect(page.locator('#mockStartError')).toContainText("used all of today's interviews");
+    await expect(page.locator('#mockLive')).toBeHidden();
+    await expect(page.locator('#mockQuotaText')).toHaveText('0 of 5 left');
   });
+
   test('shows the camera as a video-call tile, and turns it off and on', async ({ page }) => {
     const errors = await watchErrors(page);
-    await fakeApi(page, () => RATING);
+    await fakeWorker(page);
     const video = page.locator('#mockVideo');
     const playing = () => video.evaluate((v) => !!v.srcObject && v.videoWidth > 0);
 
     // the camera check on the setup page (the browser's fake camera is used in tests)
-    await page.goto('/index.html#/mock');
+    await open(page);
     await page.locator('#mockCamTest').click();
     await expect(page.locator('#mockCamStatus')).toHaveText('Your camera works');
     await expect(page.locator('#mockCamPreview')).toBeVisible();
     await expect(page.locator('#mockCamOn')).toHaveAttribute('aria-checked', 'true');
 
-    await setUp(page, { followUps: false });
+    await setUp(page, { followUps: false, opened: true });
     const tile = page.locator('#mockCamTile');
     await expect(tile).toHaveAttribute('data-cam', 'on');
     await expect.poll(playing).toBe(true);
@@ -206,11 +288,11 @@ test.describe('Mock interview', () => {
   });
 
   test('keeps the camera off when it is switched off on the setup page', async ({ page }) => {
-    await fakeApi(page, () => RATING);
-    await page.goto('/index.html#/mock');
+    await fakeWorker(page);
+    await open(page);
     await page.locator('#mockCamOn').click();
     await expect(page.locator('#mockCamOn')).toHaveAttribute('aria-checked', 'false');
-    await setUp(page, { followUps: false });
+    await setUp(page, { followUps: false, opened: true });
     await expect(page.locator('#mockCamTile')).toHaveAttribute('data-cam', 'off');
     await expect(page.locator('#mockCamOffText')).toHaveText('Camera off');
     expect(await page.locator('#mockVideo').evaluate((v) => v.srcObject)).toBeNull();
