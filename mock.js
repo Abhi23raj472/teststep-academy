@@ -30,6 +30,8 @@
     'mockSetup', 'mockLive', 'mockFeedback', 'mockSummary',
     'mockTopics', 'mockLevel', 'mockCount', 'mockCountHint', 'mockMode', 'mockModeHint', 'mockFollowUps',
     'mockMeter', 'mockMicTest', 'mockMicStatus', 'mockLang',
+    'mockCamPreview', 'mockCamPreviewVideo', 'mockCamTest', 'mockCamStatus', 'mockCamDeviceRow', 'mockCamDevice', 'mockCamOn',
+    'mockCamTile', 'mockVideo', 'mockCamOffText', 'mockCamToggle', 'mockCamToggleLabel',
     'mockVoice', 'mockVoiceSample', 'mockRate',
     'mockKey', 'mockKeyForget', 'mockRememberRow', 'mockRemember', 'mockModel', 'mockKeyError',
     'mockStart', 'mockSupport', 'mockHistoryBlock', 'mockHistory',
@@ -82,7 +84,9 @@
       lang: ['en-IN', 'en-US', 'en-GB'].indexOf(p.lang) !== -1 ? p.lang : 'en-IN',
       voice: typeof p.voice === 'string' ? p.voice : '',
       rate: [0.85, 1, 1.15].indexOf(p.rate) !== -1 ? p.rate : 1,
-      model: typeof p.model === 'string' ? p.model : 'claude-sonnet-5-5'
+      model: typeof p.model === 'string' ? p.model : 'claude-sonnet-5-5',
+      camera: p.camera !== false,
+      camDevice: typeof p.camDevice === 'string' ? p.camDevice : ''
     };
   }
 
@@ -440,6 +444,171 @@
     el.mockMicStatus.textContent = text;
     el.mockMicStatus.classList.toggle('is-ok', ok);
     el.mockMicStatus.classList.toggle('tone-mint', ok);
+  }
+
+  // ---------- camera ----------
+  // The picture is shown on this page only. It is never recorded, saved or sent anywhere;
+  // the interview is rated on the text of the answers alone.
+
+  var canCamera = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  var cam = { stream: null, opening: null, wanted: false };
+
+  function stopTracks(stream) {
+    stream.getTracks().forEach(function (track) { track.stop(); });
+  }
+
+  function cameraRequest(deviceId) {
+    var video = { width: { ideal: 1280 }, height: { ideal: 720 } };
+    if (deviceId) video.deviceId = { exact: deviceId };
+    else video.facingMode = 'user';
+    return navigator.mediaDevices.getUserMedia({ video: video, audio: false });
+  }
+
+  // Opens the camera once and shares the picture between the setup preview and the call.
+  function openCamera() {
+    if (cam.stream) return Promise.resolve(cam.stream);
+    if (cam.opening) return cam.opening;
+    if (!canCamera) {
+      var unsupported = new Error('No camera API');
+      unsupported.name = 'NotSupportedError';
+      return Promise.reject(unsupported);
+    }
+    cam.opening = cameraRequest(settings.camDevice)
+      .catch(function (err) {
+        // the camera picked last time may have been unplugged
+        if (settings.camDevice && err && (err.name === 'OverconstrainedError' || err.name === 'NotFoundError')) {
+          settings.camDevice = '';
+          savePrefs();
+          return cameraRequest('');
+        }
+        throw err;
+      })
+      .then(function (stream) {
+        cam.opening = null;
+        if (!cam.wanted) {
+          // the page was left while the browser was asking
+          stopTracks(stream);
+          var aborted = new Error('Camera no longer needed');
+          aborted.name = 'AbortError';
+          throw aborted;
+        }
+        cam.stream = stream;
+        return stream;
+      }, function (err) {
+        cam.opening = null;
+        throw err;
+      });
+    return cam.opening;
+  }
+
+  function closeCamera() {
+    cam.wanted = false;
+    if (cam.stream) stopTracks(cam.stream);
+    cam.stream = null;
+    el.mockVideo.srcObject = null;
+    el.mockCamPreviewVideo.srcObject = null;
+    show(el.mockCamPreview, false);
+    el.mockCamTest.textContent = 'Test camera';
+    paintCamTile();
+  }
+
+  function cameraError(err) {
+    var name = err && err.name;
+    if (name === 'NotAllowedError' || name === 'SecurityError') return 'Camera access is blocked. Allow it from the icon in the address bar.';
+    if (name === 'NotFoundError' || name === 'OverconstrainedError') return 'No camera was found.';
+    if (name === 'NotReadableError') return 'The camera is being used by another app.';
+    if (name === 'NotSupportedError') return 'This browser cannot use a camera here.';
+    return 'The camera could not be opened.';
+  }
+
+  function camStatus(text, ok) {
+    el.mockCamStatus.textContent = text;
+    el.mockCamStatus.classList.toggle('is-ok', ok);
+    el.mockCamStatus.classList.toggle('tone-mint', ok);
+  }
+
+  function testCamera() {
+    if (cam.stream || cam.opening) {
+      closeCamera();
+      camStatus('', false);
+      return;
+    }
+    camStatus('Opening the camera…', false);
+    cam.wanted = true;
+    openCamera()
+      .then(function (stream) {
+        if (screen !== 'setup') return;
+        el.mockCamPreviewVideo.srcObject = stream;
+        show(el.mockCamPreview, true);
+        el.mockCamTest.textContent = 'Stop test';
+        camStatus('Your camera works', true);
+        fillCameras(stream);
+      })
+      .catch(function (err) {
+        if (err && err.name === 'AbortError') return;
+        camStatus(cameraError(err) + ' You can still do the interview.', false);
+      });
+  }
+
+  // Device names are only available once the camera has been allowed.
+  function fillCameras(stream) {
+    if (!navigator.mediaDevices.enumerateDevices) return;
+    navigator.mediaDevices.enumerateDevices().then(function (devices) {
+      var cams = devices.filter(function (d) { return d.kind === 'videoinput'; });
+      var track = stream.getVideoTracks()[0];
+      var current = track && track.getSettings ? track.getSettings().deviceId : '';
+      el.mockCamDevice.textContent = '';
+      cams.forEach(function (d, i) {
+        var option = h('option', null, d.label || 'Camera ' + (i + 1));
+        option.value = d.deviceId;
+        el.mockCamDevice.appendChild(option);
+      });
+      if (current) el.mockCamDevice.value = current;
+      show(el.mockCamDeviceRow, cams.length > 1);
+    }).catch(function () { /* the list is only a convenience */ });
+  }
+
+  // The camera tile on the live screen and the button that turns it on and off.
+  function paintCamTile() {
+    var wantOn = !!(session && session.camOn);
+    var showing = !!(cam.stream && wantOn && el.mockVideo.srcObject);
+    el.mockCamTile.setAttribute('data-cam', showing ? 'on' : 'off');
+    el.mockCamToggle.setAttribute('data-cam', wantOn ? 'on' : 'off');
+    el.mockCamToggleLabel.textContent = wantOn ? 'Turn camera off' : 'Turn camera on';
+    show(el.mockCamToggle, canCamera && !!session);
+    if (!showing) {
+      el.mockCamOffText.textContent = (session && session.camError) || (wantOn ? 'Starting the camera…' : 'Camera off');
+    }
+  }
+
+  function startLiveCamera() {
+    if (!session || !session.camOn || !visible) {
+      paintCamTile();
+      return;
+    }
+    cam.wanted = true;
+    session.camError = '';
+    paintCamTile();
+    openCamera()
+      .then(function (stream) {
+        if (!session || !session.camOn) return;
+        if (el.mockVideo.srcObject !== stream) el.mockVideo.srcObject = stream;
+        paintCamTile();
+      })
+      .catch(function (err) {
+        if (!session || (err && err.name === 'AbortError')) return;
+        session.camOn = false;
+        session.camError = cameraError(err) + ' You can still answer.';
+        paintCamTile();
+      });
+  }
+
+  function toggleLiveCamera() {
+    if (!session) return;
+    session.camOn = !session.camOn;
+    session.camError = '';
+    if (session.camOn) startLiveCamera();
+    else closeCamera();
   }
 
   // ---------- the Anthropic API ----------
@@ -834,6 +1003,8 @@
       if (target) target.focus({ preventScroll: true });
     }
     if (name !== 'setup') closeMic();
+    if (name === 'live' || name === 'feedback') startLiveCamera();
+    else if (name === 'summary' || !session) closeCamera();
     runClock(name === 'live' || name === 'feedback');
   }
 
@@ -889,7 +1060,9 @@
           }),
           results: [],
           index: 0,
-          review: -1
+          review: -1,
+          camOn: settings.camera && canCamera,
+          camError: ''
         };
         askCurrent();
       })
@@ -1449,6 +1622,23 @@
   });
 
   el.mockMicTest.addEventListener('click', testMic);
+  el.mockCamTest.addEventListener('click', testCamera);
+  el.mockCamToggle.addEventListener('click', toggleLiveCamera);
+  el.mockCamDevice.addEventListener('change', function () {
+    settings.camDevice = el.mockCamDevice.value;
+    savePrefs();
+    if (cam.stream && screen === 'setup') {
+      closeCamera();
+      testCamera();
+    }
+  });
+  el.mockCamOn.setAttribute('aria-checked', String(settings.camera));
+  el.mockCamOn.addEventListener('click', function () {
+    settings.camera = !settings.camera;
+    el.mockCamOn.setAttribute('aria-checked', String(settings.camera));
+    savePrefs();
+  });
+  if (!canCamera) camStatus('This browser cannot use a camera here. The interview works without one.', false);
   el.mockStart.addEventListener('click', startInterview);
 
   el.mockRepeat.addEventListener('click', function () {
@@ -1559,6 +1749,7 @@
       visible = false;
       stopSpeaking();
       closeMic();
+      closeCamera();
       runClock(false);
       if (listening) {
         stopListening(function () {
@@ -1571,4 +1762,9 @@
       }
     }
   };
+
+  // The router may have opened this page before this script ran, for example when the
+  // site is opened straight on #/mock. Catch up, or the page would act as if hidden.
+  var view = document.getElementById('view-mock');
+  if (view && !view.hidden && !visible) T.mock.show();
 })();

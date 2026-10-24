@@ -324,6 +324,35 @@
               <p class="mock-hint">Your browser turns your speech into text with its own speech service.</p>
             </section>
 
+            <section class="mock-card" aria-labelledby="mockCamTitle">
+              <div class="mock-card-head">
+                <span class="mock-icon tone-sky" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h8A2.5 2.5 0 0 1 16 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-8A2.5 2.5 0 0 1 3 16.5z"/><path d="M16 10l5-3v10l-5-3"/></svg></span>
+                <div>
+                  <h2 id="mockCamTitle">Check your camera</h2>
+                  <p>Optional. Practise eye contact and posture, as in a video interview.</p>
+                </div>
+              </div>
+              <div class="mock-cam mock-cam-preview" id="mockCamPreview" hidden>
+                <video class="mock-video" id="mockCamPreviewVideo" muted playsinline autoplay></video>
+              </div>
+              <div class="mock-mic-row">
+                <button class="btn" id="mockCamTest" type="button">Test camera</button>
+                <p class="mock-mic-status" id="mockCamStatus" role="status"></p>
+              </div>
+              <div class="mock-cam-device" id="mockCamDeviceRow" hidden>
+                <label class="mock-label" for="mockCamDevice">Camera</label>
+                <select class="mock-select" id="mockCamDevice"></select>
+              </div>
+              <button class="switch-row mock-switch" id="mockCamOn" type="button" role="switch" aria-checked="true">
+                <span class="switch-label mock-switch-text">
+                  <strong>Camera on during the interview</strong>
+                  <span>You can turn it off any time.</span>
+                </span>
+                <span class="switch" aria-hidden="true"><span class="knob"></span></span>
+              </button>
+              <p class="mock-hint">Your video stays in this browser. It is never recorded, saved or sent anywhere. Only the text of your answers is rated.</p>
+            </section>
+
             <section class="mock-card" aria-labelledby="mockVoiceTitle">
               <h2 id="mockVoiceTitle">Interviewer voice</h2>
               <label class="visually-hidden" for="mockVoice">Voice</label>
@@ -381,20 +410,35 @@
         </div>
 
         <div class="wrap mock-live">
+          <!-- a video call: the interviewer on the left, the candidate's own camera on the right -->
+          <div class="mock-tiles">
+            <section class="mock-tile mock-tile-ai" aria-label="Interviewer">
+              <div class="mock-orb" id="mockOrb" aria-hidden="true">
+                <span class="mock-orb-disc"></span>
+                <span class="mock-orb-well"></span>
+                <span class="mock-orb-core">
+                  <svg viewBox="0 0 48 48" width="56" height="56"><rect x="8" y="19" width="4.5" height="10" rx="2.25"/><rect x="15.5" y="13" width="4.5" height="22" rx="2.25"/><rect x="23" y="8" width="4.5" height="32" rx="2.25"/><rect x="30.5" y="15" width="4.5" height="18" rx="2.25"/><rect x="38" y="20" width="4.5" height="8" rx="2.25"/></svg>
+                </span>
+              </div>
+              <p class="mock-status" id="mockStatus" role="status" aria-live="polite"></p>
+            </section>
+            <section class="mock-tile mock-cam" id="mockCamTile" aria-label="Your camera" data-cam="off">
+              <video class="mock-video" id="mockVideo" muted playsinline autoplay></video>
+              <div class="mock-cam-off">
+                <span class="mock-cam-avatar" aria-hidden="true"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1-3.9 4-5.8 7.5-5.8s6.5 1.9 7.5 5.8"/></svg></span>
+                <span id="mockCamOffText">Camera off</span>
+              </div>
+              <span class="mock-vchip mock-vchip-you">You <span class="mock-level" id="mockLevelBars" aria-hidden="true"></span></span>
+              <span class="mock-vchip mock-vchip-rec"><span class="mock-rec-dot" aria-hidden="true"></span>Not recorded</span>
+            </section>
+          </div>
+
           <section class="mock-card mock-stage" aria-labelledby="mockQuestion">
             <div class="mock-stage-top">
               <span class="mock-topic-chip" id="mockTopicChip"></span>
               <span class="tag" id="mockLevelChip"></span>
               <span class="mock-count" id="mockQCount"></span>
             </div>
-            <div class="mock-orb" id="mockOrb" aria-hidden="true">
-              <span class="mock-orb-disc"></span>
-              <span class="mock-orb-well"></span>
-              <span class="mock-orb-core">
-                <svg viewBox="0 0 48 48" width="64" height="64"><rect x="8" y="19" width="4.5" height="10" rx="2.25"/><rect x="15.5" y="13" width="4.5" height="22" rx="2.25"/><rect x="23" y="8" width="4.5" height="32" rx="2.25"/><rect x="30.5" y="15" width="4.5" height="18" rx="2.25"/><rect x="38" y="20" width="4.5" height="8" rx="2.25"/></svg>
-              </span>
-            </div>
-            <p class="mock-status" id="mockStatus" role="status" aria-live="polite"></p>
             <h1 class="mock-question" id="mockQuestion" tabindex="-1"></h1>
             <div class="mock-stage-actions">
               <button class="btn" id="mockRepeat" type="button">Repeat question</button>
@@ -405,7 +449,6 @@
           <section class="mock-card mock-answer" aria-labelledby="mockAnswerTitle">
             <div class="mock-answer-head">
               <h2 id="mockAnswerTitle">Your answer</h2>
-              <span class="mock-level" id="mockLevelBars" aria-hidden="true"></span>
               <span class="mock-answer-time"><span id="mockAnswerClock">0:00</span> <span class="mock-muted">/ aim for 2:00</span></span>
             </div>
             <label class="visually-hidden" for="mockAnswer">Your answer</label>
@@ -416,6 +459,11 @@
               <button class="btn" id="mockPause" type="button">Pause</button>
               <button class="btn" id="mockSwitchMode" type="button">Type instead</button>
               <button class="btn" id="mockRestart" type="button">Start over</button>
+              <button class="btn" id="mockCamToggle" type="button" hidden>
+                <svg class="mock-cam-icon-on" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h8A2.5 2.5 0 0 1 16 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-8A2.5 2.5 0 0 1 3 16.5z"/><path d="M16 10l5-3v10l-5-3"/></svg>
+                <svg class="mock-cam-icon-off" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h8A2.5 2.5 0 0 1 16 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-8A2.5 2.5 0 0 1 3 16.5z"/><path d="M16 10l5-3v10l-5-3"/><path d="M2.5 2.5l19 19"/></svg>
+                <span id="mockCamToggleLabel">Turn camera on</span>
+              </button>
             </div>
             <button class="btn btn-primary btn-lg mock-done" id="mockDone" type="button">Done, rate my answer</button>
             <button class="text-btn mock-skip" id="mockSkip" type="button">Skip this question</button>
