@@ -13,7 +13,14 @@ module.exports = defineConfig({
     trace: 'retain-on-failure',
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        // a fake camera and microphone, allowed without a prompt, for the mock interview tests
+        launchOptions: { args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] },
+      },
+    },
   ],
   // start the small server in tests/serve.js before the tests, stop it after
   webServer: {

@@ -161,4 +161,58 @@ test.describe('Mock interview', () => {
     await expect(page.locator('#mockKeyError')).toContainText('Add your Anthropic API key');
     await expect(page.locator('#mockKey')).toBeFocused();
   });
+  test('shows the camera as a video-call tile, and turns it off and on', async ({ page }) => {
+    const errors = await watchErrors(page);
+    await fakeApi(page, () => RATING);
+    const video = page.locator('#mockVideo');
+    const playing = () => video.evaluate((v) => !!v.srcObject && v.videoWidth > 0);
+
+    // the camera check on the setup page (the browser's fake camera is used in tests)
+    await page.goto('/index.html#/mock');
+    await page.locator('#mockCamTest').click();
+    await expect(page.locator('#mockCamStatus')).toHaveText('Your camera works');
+    await expect(page.locator('#mockCamPreview')).toBeVisible();
+    await expect(page.locator('#mockCamOn')).toHaveAttribute('aria-checked', 'true');
+
+    await setUp(page, { followUps: false });
+    const tile = page.locator('#mockCamTile');
+    await expect(tile).toHaveAttribute('data-cam', 'on');
+    await expect.poll(playing).toBe(true);
+    await expect(tile).toContainText('Not recorded');
+
+    // off and on again during the interview
+    const toggle = page.locator('#mockCamToggle');
+    await expect(toggle).toHaveText('Turn camera off');
+    await toggle.click();
+    await expect(tile).toHaveAttribute('data-cam', 'off');
+    await expect(page.locator('#mockCamOffText')).toHaveText('Camera off');
+    expect(await video.evaluate((v) => v.srcObject)).toBeNull();
+    await expect(toggle).toHaveText('Turn camera on');
+    await toggle.click();
+    await expect(tile).toHaveAttribute('data-cam', 'on');
+    await expect.poll(playing).toBe(true);
+
+    // leaving the page releases the camera; coming back turns it on again
+    await page.goto('/index.html#/');
+    expect(await video.evaluate((v) => v.srcObject)).toBeNull();
+    await page.goto('/index.html#/mock');
+    await expect(tile).toHaveAttribute('data-cam', 'on');
+
+    // ending the interview releases it
+    await page.locator('#mockEnd').click();
+    await expect(page.locator('#mockSetup')).toBeVisible();
+    expect(await video.evaluate((v) => v.srcObject)).toBeNull();
+    expect(errors, 'errors on the page').toEqual([]);
+  });
+
+  test('keeps the camera off when it is switched off on the setup page', async ({ page }) => {
+    await fakeApi(page, () => RATING);
+    await page.goto('/index.html#/mock');
+    await page.locator('#mockCamOn').click();
+    await expect(page.locator('#mockCamOn')).toHaveAttribute('aria-checked', 'false');
+    await setUp(page, { followUps: false });
+    await expect(page.locator('#mockCamTile')).toHaveAttribute('data-cam', 'off');
+    await expect(page.locator('#mockCamOffText')).toHaveText('Camera off');
+    expect(await page.locator('#mockVideo').evaluate((v) => v.srcObject)).toBeNull();
+  });
 });
