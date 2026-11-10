@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0d0f14;
+  --bg-card: #131720;
+  --bg-card2: #1a2030;
+  --border: rgba(99,120,180,0.15);
+  --border-bright: rgba(99,120,180,0.35);
+  --accent: #6c8ef7;
+  --accent2: #a78bfa;
+  --accent-glow: rgba(108,142,247,0.18);
+  --text: #e2e8f0;
+  --muted: #718096;
+  --green: #34d399;
+  --yellow: #fbbf24;
+  --red: #f87171;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+
+.glass {
+  background: rgba(19,23,32,0.75);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+}
+
+.glow-accent { box-shadow: 0 0 24px var(--accent-glow); }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.chip-blue  { background: rgba(108,142,247,0.14); color: #93b3ff; border: 1px solid rgba(108,142,247,0.25); }
+.chip-purple{ background: rgba(167,139,250,0.14); color: #c4b5fd; border: 1px solid rgba(167,139,250,0.25); }
+.chip-green { background: rgba(52,211,153,0.14);  color: #6ee7b7; border: 1px solid rgba(52,211,153,0.25); }
+.chip-yellow{ background: rgba(251,191,36,0.14);  color: #fcd34d; border: 1px solid rgba(251,191,36,0.25); }
+.chip-red   { background: rgba(248,113,113,0.14); color: #fca5a5; border: 1px solid rgba(248,113,113,0.25); }
